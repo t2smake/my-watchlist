@@ -24,7 +24,7 @@
 body.light {
   --bg:#f4f2ee; --surface:#faf9f6; --surface2:#eeece7;
   --border:#d8d5cc; --borderL:#c4c1b8;
-  --gold:#9a7535; --goldL:#7a5c20; --goldD:rgba(154,117,53,.1);
+  --gold:#9a7535; --goldL:#b8924a; --goldD:rgba(154,117,53,.1);
   --green:#1a7a50; --greenD:rgba(26,122,80,.1);
   --red:#c0392b;   --redD:rgba(192,57,43,.1);
   --blue:#2563eb;  --blueD:rgba(37,99,235,.1);
@@ -191,6 +191,10 @@ h1 em{font-style:italic;color:var(--goldL)}
 .wk-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--amber),var(--green));width:100%}
 .wk-dot{position:absolute;top:-4px;width:10px;height:10px;border-radius:50%;
   background:var(--goldL);border:1.5px solid var(--bg);transform:translateX(-50%);transition:left .7s ease}
+.wk-bucket{font-family:var(--mono);font-size:calc(8px * var(--scale));letter-spacing:.06em;text-transform:uppercase}
+.wk-bucket.near-low{color:var(--green)}
+.wk-bucket.near-high{color:var(--red)}
+.wk-bucket.mid{color:var(--textM);opacity:.6}
 
 /* ── SKELETON ───────────────────────────────────────────────────────────── */
 .sk{background:linear-gradient(90deg,var(--surface2) 25%,var(--borderL) 50%,var(--surface2) 75%);
@@ -205,6 +209,11 @@ h1 em{font-style:italic;color:var(--goldL)}
 .no-results{font-family:var(--mono);font-size:12px;color:var(--textM);
   padding:48px;text-align:center;letter-spacing:.1em;
   border:1px solid var(--border);background:var(--surface)}
+.clear-hint-btn{font-family:var(--mono);font-size:11px;letter-spacing:.08em;
+  background:none;border:1px solid var(--gold);color:var(--goldL);
+  padding:3px 10px;cursor:pointer;margin-left:6px;transition:background .15s}
+.clear-hint-btn:hover{background:var(--goldD)}
+button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
 /* ── FOOTER ─────────────────────────────────────────────────────────────── */
 footer{margin-top:64px;padding:32px 0;border-top:1px solid var(--border);
@@ -251,14 +260,14 @@ footer{margin-top:64px;padding:32px 0;border-top:1px solid var(--border);
     <span class="eyebrow-brand"><a class="brand-link" href="https://x.com/t2make" target="_blank" rel="noopener">@t2make</a></span>
   </div>
   <h1>Sector <em>Watchlist</em></h1>
-  <p class="sub">57 tickers across 19 sectors. Live fundamentals + RSI(14) + MA technical signals for long-term entry awareness. Fetched once daily and cached locally — instant on repeat opens.</p>
+  <p class="sub" id="sub-desc">57 tickers across 19 sectors. Live fundamentals + RSI(14) + MA technical signals for long-term entry awareness. Fetched once daily and cached locally — instant on repeat opens.</p>
   <div class="status-bar">
     <div class="dot" id="dot"></div>
     <span id="status-text">Initialising…</span>
     <div class="pills">
       <div class="pill">19 SECTORS</div>
       <div class="pill">57 TICKERS</div>
-      <div class="pill">DAILY CACHE</div>
+      <div class="pill">REFRESHES DAILY</div>
     </div>
     <div class="size-btns">
       <button class="size-btn" data-scale="0.85">A−</button>
@@ -285,9 +294,9 @@ footer{margin-top:64px;padding:32px 0;border-top:1px solid var(--border);
 
 <div class="controls-bar" id="controls-bar"></div>
 
-<div class="sec-label">19 Sectors · 57 Tickers · RSI(14) + MA50/200 + Fundamentals</div>
+<div class="sec-label" id="sec-label">19 Sectors · 57 Tickers · RSI(14) + MA50/200 + Fundamentals</div>
 <div class="sectors-grid" id="sectors-grid"></div>
-<div class="no-results" id="no-results" style="display:none">No tickers match the current filter.</div>
+<div class="no-results" id="no-results" style="display:none">No tickers match the current filter.&nbsp;<button class="clear-hint-btn" id="clear-filter-hint">Clear filter</button></div>
 
 <footer>
   <div class="disclaimer">
@@ -392,7 +401,7 @@ function getSignal(price, ma50, ma200, rsi) {
   if ((p50!==null&&p50<-3)||(p200!==null&&p200<-3))           return {cls:'ns',label:'↓ NEAR SUPPORT'};
   if (rsi!==null && rsi>72)                                    return {cls:'ex',label:'⚠ EXTENDED'};
   if (p50!==null&&p50>0&&p200!==null&&p200>0)                  return {cls:'ut',label:'↑ UPTREND'};
-  return {cls:'ns',label:'↓ NEAR SUPPORT'};
+  return {cls:'ns',label:'↔ MIXED'};
 }
 
 // ── MARKET BAR ────────────────────────────────────────────────────────────
@@ -668,7 +677,10 @@ function renderSkeletons() {
     block.innerHTML = `
       <div class="sector-hdr">
         <div class="sector-title">${sec.title}</div>
-        <div class="sector-ico">${sec.icon}</div>
+        <div style="display:flex;align-items:center;gap:10px">
+          <span class="mkt-tag neut" id="srsi-${si}" style="opacity:0"></span>
+          <div class="sector-ico">${sec.icon}</div>
+        </div>
       </div>
       <div class="sector-body"><div class="tickers-row">
         ${sec.tickers.map((t, i) => `
@@ -718,9 +730,22 @@ function populateCard(ticker, q, rsi) {
     : '';
   const tagsBlock = `<div class="card-tags">${rsiTag}${ma50tag}${ma200tag}${crossTag}</div>`;
 
+  const volRatio  = (q?.volumeAvg20 && q?.regularMarketVolume) ? q.regularMarketVolume / q.volumeAvg20 : null;
+  const volCls    = volRatio == null ? '' : volRatio > 1.3 ? 'bull' : volRatio < 0.7 ? 'neut' : '';
+  const volLabel  = volRatio != null ? `${volRatio.toFixed(1)}×` : fmtVol(q?.regularMarketVolume);
+  const volDl     = volRatio != null ? 'Vol vs Avg' : 'Volume';
+
+  const wkBucket = wkPct == null ? null :
+    wkPct <= 25 ? {label:'NEAR LOW',  cls:'near-low'}  :
+    wkPct >= 75 ? {label:'NEAR HIGH', cls:'near-high'} :
+                  {label:'MID RANGE', cls:'mid'};
   const wkBlock = wkPct!==null ? `
     <div class="wk-wrap">
-      <div class="wk-top"><span>52W LOW ${fmtP(wkL)}</span><span>HIGH ${fmtP(wkH)}</span></div>
+      <div class="wk-top">
+        <span>52W LOW ${fmtP(wkL)}</span>
+        ${wkBucket ? `<span class="wk-bucket ${wkBucket.cls}">${wkBucket.label}</span>` : ''}
+        <span>HIGH ${fmtP(wkH)}</span>
+      </div>
       <div class="wk-bar">
         <div class="wk-fill"></div>
         <div class="wk-dot" style="left:${wkPct}%"></div>
@@ -742,7 +767,7 @@ function populateCard(ticker, q, rsi) {
       <div class="di"><div class="dl">Market Cap</div><div class="dv">${fmtMC(q?.marketCap)}</div></div>
       <div class="di"><div class="dl">Trail P/E</div><div class="dv">${fmtPE(q?.trailingPE)}</div></div>
       <div class="di"><div class="dl">Fwd P/E</div><div class="dv">${fmtPE(q?.forwardPE)}</div></div>
-      <div class="di"><div class="dl">Volume</div><div class="dv">${fmtVol(q?.regularMarketVolume)}</div></div>
+      <div class="di"><div class="dl">${volDl}</div><div class="dv ${volCls}">${volLabel}</div></div>
       <div class="di">
         <div class="dl">vs MA50</div>
         <div class="dv ${p50==null?'':p50>0?'bull':'bear'}">${p50==null?'—':(p50>0?'+':'')+p50.toFixed(1)+'%'}</div>
@@ -798,6 +823,11 @@ async function fetchTickerData(sym) {
       ? closes.slice(-n).reduce((a, b) => a + b, 0) / n
       : null;
 
+    const vols = result.indicators?.quote?.[0]?.volume?.filter(v => v != null) ?? [];
+    const volumeAvg20 = vols.length > 0
+      ? vols.slice(-20).reduce((a,b) => a+b, 0) / Math.min(20, vols.length)
+      : null;
+
     const prev  = meta.chartPreviousClose ?? meta.previousClose ?? null;
     const price = meta.regularMarketPrice;
 
@@ -806,6 +836,7 @@ async function fetchTickerData(sym) {
         regularMarketPrice:         price,
         regularMarketChangePercent: prev ? (price - prev) / prev * 100 : null,
         regularMarketVolume:        meta.regularMarketVolume ?? null,
+        volumeAvg20,
         fiftyTwoWeekHigh:           meta.fiftyTwoWeekHigh   ?? null,
         fiftyTwoWeekLow:            meta.fiftyTwoWeekLow    ?? null,
         fiftyDayAverage:            sma(50),
@@ -840,6 +871,35 @@ async function batchFetchAll(allTickers, size = 5) {
   return { quotes, rsiMap, loadedCount };
 }
 
+// ── DYNAMIC COUNTS ────────────────────────────────────────────────────────
+function updateStaticCounts() {
+  const nSec = SECTORS.length;
+  const nTick = SECTORS.flatMap(s => s.tickers).length;
+  const sub = document.getElementById('sub-desc');
+  if (sub) sub.textContent = `${nTick} tickers across ${nSec} sectors. Live fundamentals + RSI(14) + MA technical signals for long-term entry awareness. Fetched once daily and cached locally — instant on repeat opens.`;
+  const lbl = document.getElementById('sec-label');
+  if (lbl) lbl.textContent = `${nSec} Sectors · ${nTick} Tickers · RSI(14) + MA50/200 + Fundamentals`;
+  const pillSec  = document.querySelector('.pill:first-child');
+  const pillTick = document.querySelector('.pill:nth-child(2)');
+  if (pillSec)  pillSec.textContent  = `${nSec} SECTORS`;
+  if (pillTick) pillTick.textContent = `${nTick} TICKERS`;
+}
+
+// ── SECTOR RSI AVERAGES ───────────────────────────────────────────────────
+function updateSectorRSI() {
+  SECTORS.forEach((sec, si) => {
+    const el = document.getElementById(`srsi-${si}`);
+    if (!el) return;
+    const vals = sec.tickers.map(t => cardDataCache[t.sym]?.rsi).filter(r => r != null);
+    if (!vals.length) return;
+    const avg = vals.reduce((a,b) => a+b, 0) / vals.length;
+    const cls = avg < 45 ? 'bull' : avg > 65 ? 'bear' : 'neut';
+    el.className = `mkt-tag ${cls}`;
+    el.textContent = `RSI ${avg.toFixed(0)}`;
+    el.style.opacity = '1';
+  });
+}
+
 // ── STATUS ────────────────────────────────────────────────────────────────
 function setStatus(s, msg) {
   document.getElementById('dot').className = `dot ${s}`;
@@ -853,6 +913,17 @@ function setDateLabel(txt) { document.getElementById('data-date').textContent = 
   initTheme();
   buildTabs();
   buildControls();
+  updateStaticCounts();
+
+  // Clear-filter hint button
+  document.getElementById('clear-filter-hint')?.addEventListener('click', () => {
+    state.signal = 'ALL'; state.sector = 'ALL';
+    document.querySelectorAll('#filter-btns .filter-btn').forEach(b => { b.className = 'filter-btn'; });
+    document.querySelector('#filter-btns [data-sig="ALL"]')?.classList.add('f-active');
+    document.querySelectorAll('#tabs-wrap .tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelector('#tabs-wrap [data-sector="ALL"]')?.classList.add('active');
+    applyFilters();
+  });
 
   // Purge any stale cache versions
   for (const k of Object.keys(localStorage)) {
@@ -874,6 +945,7 @@ function setDateLabel(txt) { document.getElementById('data-date').textContent = 
       setDateLabel(`📅 ${todayStr()}  ·  CACHED ${fetchedAt}`);
       allTickers.forEach(t => populateCard(t, quotes[t.sym]||null, rsiMap[t.sym]??null));
       applyFilters();
+      updateSectorRSI();
       fetchMarketBar(marketQuotes || null); // uses cached market data if available
       return;
     } catch(e) { localStorage.removeItem(CACHE_KEY); }
@@ -903,6 +975,7 @@ function setDateLabel(txt) { document.getElementById('data-date').textContent = 
     localStorage.setItem(CACHE_KEY, JSON.stringify({quotes, rsiMap, fetchedAt, marketQuotes}));
   } catch(e) {}
 
+  updateSectorRSI();
   setStatus('live', `Live data loaded · ${loadedCount} tickers · refreshes daily`);
   setDateLabel(`📅 ${todayStr()}  ·  FETCHED ${fetchedAt}`);
 })();
