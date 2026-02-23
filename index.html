@@ -21,6 +21,20 @@
   --serif:'Playfair Display',serif;
   --scale:1;
 }
+body.light {
+  --bg:#f4f2ee; --surface:#faf9f6; --surface2:#eeece7;
+  --border:#d8d5cc; --borderL:#c4c1b8;
+  --gold:#9a7535; --goldL:#7a5c20; --goldD:rgba(154,117,53,.1);
+  --green:#1a7a50; --greenD:rgba(26,122,80,.1);
+  --red:#c0392b;   --redD:rgba(192,57,43,.1);
+  --blue:#2563eb;  --blueD:rgba(37,99,235,.1);
+  --amber:#b45309; --amberD:rgba(180,83,9,.1);
+  --text:#1a1714; --textM:#7a7060; --textD:#4a4038;
+}
+body.light::before {
+  background:radial-gradient(ellipse 70% 40% at 15% 5%,rgba(154,117,53,.07) 0%,transparent 70%),
+             radial-gradient(ellipse 50% 50% at 85% 95%,rgba(37,99,235,.04) 0%,transparent 70%)
+}
 *{margin:0;padding:0;box-sizing:border-box}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:var(--text);font-family:var(--sans);font-weight:300;min-height:100vh;overflow-x:hidden}
@@ -60,6 +74,10 @@ h1 em{font-style:italic;color:var(--goldL)}
   padding:3px 7px;border:1px solid var(--border);background:none;color:var(--textM);cursor:pointer;transition:all .15s}
 .size-btn:hover{border-color:var(--borderL);color:var(--textD)}
 .size-btn.s-active{border-color:var(--gold);color:var(--goldL);background:var(--goldD)}
+.theme-btn{font-family:var(--mono);font-size:11px;
+  padding:3px 8px;border:1px solid var(--border);background:none;color:var(--textM);
+  cursor:pointer;transition:all .15s;margin-left:4px}
+.theme-btn:hover{border-color:var(--borderL);color:var(--goldL)}
 #data-date{color:var(--goldL);font-weight:500;letter-spacing:.06em}
 
 /* ── SECTOR TABS ────────────────────────────────────────────────────────── */
@@ -232,6 +250,7 @@ footer{margin-top:64px;padding:32px 0;border-top:1px solid var(--border);
       <button class="size-btn" data-scale="0.9">A−</button>
       <button class="size-btn" data-scale="1">A</button>
       <button class="size-btn" data-scale="1.1">A+</button>
+      <button class="theme-btn" id="theme-btn" title="Toggle theme">☾</button>
     </div>
     <span id="data-date"></span>
   </div>
@@ -382,6 +401,20 @@ function initTextSize() {
   );
 }
 
+function setTheme(mode) {
+  document.body.classList.toggle('light', mode === 'light');
+  const btn = document.getElementById('theme-btn');
+  if (btn) btn.textContent = mode === 'light' ? '☀' : '☾';
+  try { localStorage.setItem('wl_theme', mode); } catch(e) {}
+}
+function initTheme() {
+  const saved = localStorage.getItem('wl_theme') || 'dark';
+  setTheme(saved);
+  document.getElementById('theme-btn')?.addEventListener('click', () => {
+    setTheme(document.body.classList.contains('light') ? 'dark' : 'light');
+  });
+}
+
 // ── BUILD TABS ────────────────────────────────────────────────────────────
 function buildTabs() {
   const wrap = document.getElementById('tabs-wrap');
@@ -421,6 +454,10 @@ function buildControls() {
         b.className = 'filter-btn';
       });
       btn.classList.add(state.signal === 'ALL' ? 'f-active' : `f-${state.signal}`);
+      // Reset sector tab to ALL so all matching tickers are visible
+      state.sector = 'ALL';
+      document.querySelectorAll('#tabs-wrap .tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelector('#tabs-wrap [data-sector="ALL"]')?.classList.add('active');
       applyFilters();
     });
   });
@@ -740,6 +777,7 @@ function setDateLabel(txt) { document.getElementById('data-date').textContent = 
 // ── MAIN ──────────────────────────────────────────────────────────────────
 (async () => {
   initTextSize();
+  initTheme();
   buildTabs();
   buildControls();
 
