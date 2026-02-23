@@ -317,7 +317,7 @@ const SECTORS = [
 
 // ── UTILS ─────────────────────────────────────────────────────────────────
 const todayStr = () => new Date().toISOString().slice(0,10);
-const CACHE_KEY = `wl_v5_${todayStr()}`;
+const CACHE_KEY = `wl_v6_${todayStr()}`;
 
 const fmtP   = n => n==null?'—': n>=1000?`$${n.toLocaleString('en-US',{maximumFractionDigits:0})}`:`$${n.toFixed(2)}`;
 const fmtPct = n => n==null?'—':`${n>=0?'+':''}${n.toFixed(2)}%`;
@@ -650,15 +650,20 @@ function populateCard(ticker, q, rsi) {
 
 // ── FETCH WITH CORS FALLBACKS ─────────────────────────────────────────────
 async function fetchJSON(url) {
+  const enc = encodeURIComponent(url);
   const attempts = [
-    () => fetch(url, {headers:{'Accept':'application/json'}}),
-    () => fetch(`https://corsproxy.io/?${encodeURIComponent(url)}`),
-    () => fetch(`https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`),
+    () => fetch(url,                                                           {signal:AbortSignal.timeout(7000),headers:{'Accept':'application/json'}}),
+    () => fetch(`https://corsproxy.io/?${enc}`,                               {signal:AbortSignal.timeout(7000)}),
+    () => fetch(`https://api.allorigins.win/raw?url=${enc}`,                  {signal:AbortSignal.timeout(7000)}),
+    () => fetch(`https://api.codetabs.com/v1/proxy?quest=${enc}`,             {signal:AbortSignal.timeout(7000)}),
   ];
   for (const attempt of attempts) {
     try {
       const r = await attempt();
-      if (r.ok) return await r.json();
+      if (r.ok) {
+        const data = await r.json();
+        if (data) return data;
+      }
     } catch(e) {}
   }
   return null;
@@ -666,20 +671,28 @@ async function fetchJSON(url) {
 
 async function fetchQuotes(syms) {
   const fields = 'regularMarketPrice,regularMarketChangePercent,regularMarketVolume,marketCap,trailingPE,forwardPE,fiftyTwoWeekHigh,fiftyTwoWeekLow,fiftyDayAverage,twoHundredDayAverage';
-  const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${syms.join(',')}&fields=${fields}`;
-  const data = await fetchJSON(url);
-  const map = {};
-  try { for (const q of (data?.quoteResponse?.result||[])) map[q.symbol] = q; } catch(e) {}
-  return map;
+  // Try query2 first — different servers, better CORS track record
+  for (const host of ['query2', 'query1']) {
+    const url = `https://${host}.finance.yahoo.com/v7/finance/quote?symbols=${syms.join(',')}&fields=${fields}`;
+    const data = await fetchJSON(url);
+    const map = {};
+    try { for (const q of (data?.quoteResponse?.result||[])) map[q.symbol] = q; } catch(e) {}
+    if (Object.keys(map).length > 0) return map;
+  }
+  return {};
 }
 
 async function fetchRSI(sym) {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=3mo`;
-  const data = await fetchJSON(url);
-  try {
-    const closes = data?.chart?.result?.[0]?.indicators?.quote?.[0]?.close?.filter(v => v!=null);
-    return calcRSI(closes);
-  } catch(e) { return null; }
+  for (const host of ['query2', 'query1']) {
+    const url = `https://${host}.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=3mo`;
+    const data = await fetchJSON(url);
+    try {
+      const closes = data?.chart?.result?.[0]?.indicators?.quote?.[0]?.close?.filter(v => v!=null);
+      const rsi = calcRSI(closes);
+      if (rsi !== null) return rsi;
+    } catch(e) {}
+  }
+  return null;
 }
 
 async function batchFetchRSI(syms, size=5) {
@@ -738,16 +751,19 @@ function setDateLabel(txt) { document.getElementById('data-date').textContent = 
   let quotes = {};
   try {
     quotes = await fetchQuotes(allSyms);
-    quotesCache = quotes;
-    allTickers.forEach(t => populateCard(t, quotes[t.sym]||null, null));
-    applyFilters();
-    const loaded = Object.keys(quotes).length;
-    setStatus('loading', `Quotes loaded (${loaded}/${allSyms.length}). Calculating RSI…`);
-  } catch(e) {
-    setStatus('error', 'Could not load quote data. Check your internet connection.');
+  } catch(e) {}
+
+  const loaded = Object.keys(quotes).length;
+  if (loaded === 0) {
+    setStatus('error', 'Could not reach Yahoo Finance — all proxies failed. Try refreshing.');
     setDateLabel(`📅 ${todayStr()}  ·  ERROR`);
     return;
   }
+
+  quotesCache = quotes;
+  allTickers.forEach(t => populateCard(t, quotes[t.sym]||null, null));
+  applyFilters();
+  setStatus('loading', `Quotes loaded (${loaded}/${allSyms.length}). Calculating RSI…`);
 
   // RSI in batches
   const rsiMap = await batchFetchRSI(allSyms, 5);
@@ -757,11 +773,11 @@ function setDateLabel(txt) { document.getElementById('data-date').textContent = 
   applyFilters();
 
   const fetchedAt = new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
+  // Only cache when real data was loaded — never persist empty results
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({quotes, rsiMap, fetchedAt}));
   } catch(e) {}
 
-  const loaded = Object.keys(quotes).length;
   setStatus('live', `Live data loaded · ${loaded} tickers · refreshes daily`);
   setDateLabel(`📅 ${todayStr()}  ·  FETCHED ${fetchedAt}`);
 })();
