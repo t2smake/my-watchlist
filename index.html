@@ -180,17 +180,8 @@ h1 em{font-style:italic;color:var(--goldL)}
 .signal.ex{color:#e05252;border-color:rgba(224,82,82,.4);background:rgba(224,82,82,.08)}
 .signal.nd{color:var(--textM);border-color:var(--border)}
 
-/* ── RSI BAR ────────────────────────────────────────────────────────────── */
-.rsi-wrap{margin-top:8px}
-.rsi-top{display:flex;justify-content:space-between;margin-bottom:3px;
-  font-family:var(--mono);font-size:calc(10px * var(--scale));color:var(--textM);letter-spacing:.06em}
-.rsi-bar{height:4px;background:var(--border);position:relative;border-radius:2px;overflow:visible}
-.rsi-zones{position:absolute;inset:0;display:flex;border-radius:2px;overflow:hidden}
-.rz1{background:rgba(224,82,82,.3);width:32%}
-.rz2{background:rgba(201,168,76,.15);width:38%}
-.rz3{background:rgba(39,174,114,.25);width:30%}
-.rsi-pin{position:absolute;top:-3px;width:3px;height:10px;background:var(--goldL);
-  border-radius:1px;transform:translateX(-50%);transition:left .7s ease}
+/* ── CARD TAGS ───────────────────────────────────────────────────────────── */
+.card-tags{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-top:8px}
 
 /* ── 52WK BAR ───────────────────────────────────────────────────────────── */
 .wk-wrap{margin-top:7px}
@@ -247,9 +238,6 @@ footer{margin-top:64px;padding:32px 0;border-top:1px solid var(--border);
 .mkt-tag.bull{color:var(--green);border-color:rgba(39,174,114,.4)}
 .mkt-tag.bear{color:var(--red);border-color:rgba(224,82,82,.4)}
 .mkt-tag.neut{color:var(--textM)}
-.mkt-cross{font-size:9px}
-.mkt-cross.golden{color:var(--gold)}
-.mkt-cross.death{color:var(--red)}
 .mkt-skel{height:72px;background:var(--surface2);animation:shimmer 1.5s infinite;width:100%}
 @media(max-width:768px){.market-bar{flex-wrap:wrap}.mkt-tile{flex:1 1 45%;border-right:none;border-bottom:1px solid var(--border)}.mkt-tile:last-child{border-bottom:none}}
 </style>
@@ -427,9 +415,7 @@ function renderMktTile(sym, d) {
   const ma50tag   = sma50  ? `<span class="mkt-tag ${price > sma50  ? 'bull':'bear'}">${price > sma50  ? '↑':'↓'}50</span>` : '';
   const ma200tag  = sma200 ? `<span class="mkt-tag ${price > sma200 ? 'bull':'bear'}">${price > sma200 ? '↑':'↓'}200</span>` : '';
   const cross  = (sma50 && sma200)
-    ? (sma50 > sma200
-        ? `<span class="mkt-cross golden">✦ GOLDEN</span>`
-        : `<span class="mkt-cross death">✕ DEATH</span>`)
+    ? `<span class="mkt-tag ${sma50 > sma200 ? 'bull' : 'bear'}">${sma50 > sma200 ? '↑ GOLDEN' : '↓ DEATH'}</span>`
     : '';
 
   return `<div class="mkt-tile">
@@ -720,19 +706,17 @@ function populateCard(ticker, q, rsi) {
   // Cache for filter + CSV export
   cardDataCache[ticker.sym] = { signal: sig.cls, chg: chgP??null, rsi: rsi, p200: p200??null };
 
-  const rsiBlock = rsi!==null ? `
-    <div class="rsi-wrap">
-      <div class="rsi-top">
-        <span>RSI(14)</span>
-        <span style="color:${rsi<32?'var(--green)':rsi>72?'var(--red)':'var(--textD)'};font-weight:500">
-          ${rsi.toFixed(1)} ${rsi<32?'— oversold':rsi>72?'— overbought':rsi<45?'— bearish':'— neutral'}
-        </span>
-      </div>
-      <div class="rsi-bar">
-        <div class="rsi-zones"><div class="rz1"></div><div class="rz2"></div><div class="rz3"></div></div>
-        <div class="rsi-pin" style="left:${Math.min(Math.max(rsi,2),98)}%"></div>
-      </div>
-    </div>` : (q ? `<div class="rsi-wrap"><div class="rsi-top"><span>RSI(14)</span><span style="color:var(--textM)">loading…</span></div></div>` : '');
+  const rsiCls   = rsi !== null ? (rsi < 40 ? 'bull' : rsi > 70 ? 'bear' : 'neut') : null;
+  const rsiTag   = rsi !== null
+    ? `<span class="mkt-tag ${rsiCls}">RSI ${rsi.toFixed(1)}</span>`
+    : (q ? `<span class="mkt-tag neut" style="opacity:.5">RSI …</span>` : '');
+  const ma50tag  = p50  != null ? `<span class="mkt-tag ${p50  > 0 ? 'bull':'bear'}">${p50  > 0 ? '↑':'↓'}50</span>`  : '';
+  const ma200tag = p200 != null ? `<span class="mkt-tag ${p200 > 0 ? 'bull':'bear'}">${p200 > 0 ? '↑':'↓'}200</span>` : '';
+  const crossBull = (ma50 && ma200) ? ma50 > ma200 : null;
+  const crossTag  = crossBull !== null
+    ? `<span class="mkt-tag ${crossBull ? 'bull':'bear'}">${crossBull ? '↑ GOLDEN':'↓ DEATH'}</span>`
+    : '';
+  const tagsBlock = `<div class="card-tags">${rsiTag}${ma50tag}${ma200tag}${crossTag}</div>`;
 
   const wkBlock = wkPct!==null ? `
     <div class="wk-wrap">
@@ -768,7 +752,7 @@ function populateCard(ticker, q, rsi) {
         <div class="dv ${p200==null?'':p200>0?'bull':'bear'}">${p200==null?'—':(p200>0?'+':'')+p200.toFixed(1)+'%'}</div>
       </div>
     </div>
-    ${rsiBlock}
+    ${tagsBlock}
     ${wkBlock}
     <div class="signal ${sig.cls}">${sig.label}</div>
     ${ticker.watchNote?'<div class="watch-note">WATCH LIST — ANALYSE</div>':''}`;
