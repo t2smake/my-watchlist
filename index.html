@@ -317,7 +317,7 @@ const SECTORS = [
 
 // ── UTILS ─────────────────────────────────────────────────────────────────
 const todayStr = () => new Date().toISOString().slice(0,10);
-const CACHE_KEY = `wl_v6_${todayStr()}`;
+const CACHE_KEY = `wl_v7_${todayStr()}`;
 
 const fmtP   = n => n==null?'—': n>=1000?`$${n.toLocaleString('en-US',{maximumFractionDigits:0})}`:`$${n.toFixed(2)}`;
 const fmtPct = n => n==null?'—':`${n>=0?'+':''}${n.toFixed(2)}%`;
@@ -669,42 +669,65 @@ async function fetchJSON(url) {
   return null;
 }
 
-async function fetchQuotes(syms) {
-  const fields = 'regularMarketPrice,regularMarketChangePercent,regularMarketVolume,marketCap,trailingPE,forwardPE,fiftyTwoWeekHigh,fiftyTwoWeekLow,fiftyDayAverage,twoHundredDayAverage';
-  // Try query2 first — different servers, better CORS track record
+// ── FETCH TICKER DATA ─────────────────────────────────────────────────────
+// v7/finance/quote is now restricted by Yahoo Finance.
+// v8/finance/chart works via CORS proxies and returns everything we need:
+// price, volume, 52-week range, and the raw closes to compute MA50/MA200/RSI.
+async function fetchTickerData(sym) {
   for (const host of ['query2', 'query1']) {
-    const url = `https://${host}.finance.yahoo.com/v7/finance/quote?symbols=${syms.join(',')}&fields=${fields}`;
+    const url = `https://${host}.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=1y`;
     const data = await fetchJSON(url);
-    const map = {};
-    try { for (const q of (data?.quoteResponse?.result||[])) map[q.symbol] = q; } catch(e) {}
-    if (Object.keys(map).length > 0) return map;
+    const result = data?.chart?.result?.[0];
+    if (!result) continue;
+
+    const meta   = result.meta;
+    const closes = result.indicators?.quote?.[0]?.close?.filter(v => v != null) ?? [];
+    if (!meta?.regularMarketPrice || closes.length < 15) continue;
+
+    const sma = n => closes.length >= n
+      ? closes.slice(-n).reduce((a, b) => a + b, 0) / n
+      : null;
+
+    const prev  = meta.chartPreviousClose ?? meta.previousClose ?? null;
+    const price = meta.regularMarketPrice;
+
+    return {
+      q: {
+        regularMarketPrice:         price,
+        regularMarketChangePercent: prev ? (price - prev) / prev * 100 : null,
+        regularMarketVolume:        meta.regularMarketVolume ?? null,
+        fiftyTwoWeekHigh:           meta.fiftyTwoWeekHigh   ?? null,
+        fiftyTwoWeekLow:            meta.fiftyTwoWeekLow    ?? null,
+        fiftyDayAverage:            sma(50),
+        twoHundredDayAverage:       sma(200),
+        marketCap:  null,  // not available from chart endpoint
+        trailingPE: null,
+        forwardPE:  null,
+      },
+      rsi: calcRSI(closes),
+    };
   }
-  return {};
+  return { q: null, rsi: null };
 }
 
-async function fetchRSI(sym) {
-  for (const host of ['query2', 'query1']) {
-    const url = `https://${host}.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=3mo`;
-    const data = await fetchJSON(url);
-    try {
-      const closes = data?.chart?.result?.[0]?.indicators?.quote?.[0]?.close?.filter(v => v!=null);
-      const rsi = calcRSI(closes);
-      if (rsi !== null) return rsi;
-    } catch(e) {}
+async function batchFetchAll(allTickers, size = 5) {
+  const quotes = {}, rsiMap = {};
+  let loadedCount = 0;
+  for (let i = 0; i < allTickers.length; i += size) {
+    const batch   = allTickers.slice(i, i + size);
+    const settled = await Promise.allSettled(batch.map(t => fetchTickerData(t.sym)));
+    batch.forEach((ticker, j) => {
+      const { q, rsi } = settled[j].status === 'fulfilled' ? settled[j].value : { q:null, rsi:null };
+      quotes[ticker.sym] = q;
+      rsiMap[ticker.sym] = rsi;
+      if (q?.regularMarketPrice != null) loadedCount++;
+      populateCard(ticker, q, rsi);
+    });
+    applyFilters();
+    const done = Math.min(i + size, allTickers.length);
+    setStatus('loading', `Loading… ${done}/${allTickers.length} tickers`);
   }
-  return null;
-}
-
-async function batchFetchRSI(syms, size=5) {
-  const results = {};
-  for (let i=0; i<syms.length; i+=size) {
-    const batch = syms.slice(i, i+size);
-    const settled = await Promise.allSettled(batch.map(s => fetchRSI(s)));
-    batch.forEach((s, j) => { results[s] = settled[j].status==='fulfilled' ? settled[j].value : null; });
-    const pct = Math.min(((i+size)/syms.length)*100, 100);
-    setStatus('loading', `Fetching RSI data… ${Math.round(pct)}% complete`);
-  }
-  return results;
+  return { quotes, rsiMap, loadedCount };
 }
 
 // ── STATUS ────────────────────────────────────────────────────────────────
@@ -744,41 +767,27 @@ function setDateLabel(txt) { document.getElementById('data-date').textContent = 
     } catch(e) { localStorage.removeItem(CACHE_KEY); }
   }
 
-  // Fresh fetch — quotes first
-  setStatus('loading', `Fetching quotes for ${allSyms.length} tickers…`);
+  // Fresh fetch — single pass: chart endpoint gives price + closes for MA/RSI
+  setStatus('loading', `Loading data for ${allSyms.length} tickers…`);
   setDateLabel(`📅 ${todayStr()}  ·  LOADING…`);
 
-  let quotes = {};
-  try {
-    quotes = await fetchQuotes(allSyms);
-  } catch(e) {}
+  const { quotes, rsiMap, loadedCount } = await batchFetchAll(allTickers, 5);
 
-  const loaded = Object.keys(quotes).length;
-  if (loaded === 0) {
+  if (loadedCount === 0) {
     setStatus('error', 'Could not reach Yahoo Finance — all proxies failed. Try refreshing.');
     setDateLabel(`📅 ${todayStr()}  ·  ERROR`);
     return;
   }
 
   quotesCache = quotes;
-  allTickers.forEach(t => populateCard(t, quotes[t.sym]||null, null));
-  applyFilters();
-  setStatus('loading', `Quotes loaded (${loaded}/${allSyms.length}). Calculating RSI…`);
 
-  // RSI in batches
-  const rsiMap = await batchFetchRSI(allSyms, 5);
-
-  // Final render with complete data
-  allTickers.forEach(t => populateCard(t, quotes[t.sym]||null, rsiMap[t.sym]??null));
-  applyFilters();
-
-  const fetchedAt = new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
   // Only cache when real data was loaded — never persist empty results
+  const fetchedAt = new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({quotes, rsiMap, fetchedAt}));
   } catch(e) {}
 
-  setStatus('live', `Live data loaded · ${loaded} tickers · refreshes daily`);
+  setStatus('live', `Live data loaded · ${loadedCount} tickers · refreshes daily`);
   setDateLabel(`📅 ${todayStr()}  ·  FETCHED ${fetchedAt}`);
 })();
 </script>
