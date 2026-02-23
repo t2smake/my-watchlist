@@ -510,6 +510,10 @@ function buildTabs() {
   wrap.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
       state.sector = btn.dataset.sector;
+      // Reset signal filter so all tickers in the selected sector are visible
+      state.signal = 'ALL';
+      document.querySelectorAll('#filter-btns .filter-btn').forEach(b => { b.className = 'filter-btn'; });
+      document.querySelector('#filter-btns [data-sig="ALL"]')?.classList.add('f-active');
       wrap.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       applyFilters();
