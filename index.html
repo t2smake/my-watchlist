@@ -87,7 +87,7 @@ h1 em{font-style:italic;color:var(--goldL)}
 .tabs-wrap::-webkit-scrollbar-track{background:transparent}
 .tabs-wrap::-webkit-scrollbar-thumb{background:var(--borderL)}
 .tabs-inner{display:flex;white-space:nowrap}
-.tab-btn{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+.tab-btn{font-family:var(--mono);font-size:calc(10px * var(--scale));letter-spacing:.12em;text-transform:uppercase;
   padding:10px 14px;border:none;background:none;color:var(--textM);cursor:pointer;
   border-bottom:2px solid transparent;transition:color .15s,border-color .15s;
   flex-shrink:0;margin-bottom:-1px}
@@ -99,7 +99,7 @@ h1 em{font-style:italic;color:var(--goldL)}
   padding:13px 18px;border:1px solid var(--border);background:var(--surface);margin-bottom:16px;
   font-family:var(--mono);font-size:10px}
 .lg-title{color:var(--textM);letter-spacing:.1em}
-.lb{padding:2px 7px;font-size:9px;font-weight:500;letter-spacing:.08em;border:1px solid}
+.lb{padding:2px 7px;font-size:calc(9px * var(--scale));font-weight:500;letter-spacing:.08em;border:1px solid}
 .lb.dc{color:#27ae72;border-color:rgba(39,174,114,.4);background:rgba(39,174,114,.08)}
 .lb.we{color:#c9a84c;border-color:rgba(201,168,76,.4);background:rgba(201,168,76,.08)}
 .lb.ns{color:#3b82f6;border-color:rgba(59,130,246,.4);background:rgba(59,130,246,.08)}
@@ -109,7 +109,7 @@ h1 em{font-style:italic;color:var(--goldL)}
 /* ── CONTROLS BAR ───────────────────────────────────────────────────────── */
 .controls-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:24px;padding:10px 0}
 .filter-btns{display:flex;gap:4px;flex-wrap:wrap}
-.filter-btn{font-family:var(--mono);font-size:9px;letter-spacing:.08em;
+.filter-btn{font-family:var(--mono);font-size:calc(9px * var(--scale));letter-spacing:.08em;
   padding:5px 10px;border:1px solid var(--border);background:none;color:var(--textM);
   cursor:pointer;transition:all .15s}
 .filter-btn:hover{border-color:var(--borderL);color:var(--textD)}
@@ -156,23 +156,23 @@ h1 em{font-style:italic;color:var(--goldL)}
   letter-spacing:.08em;padding:2px 6px;border:1px solid rgba(59,130,246,.35);
   color:var(--blue);background:var(--blueD)}
 .card-head{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px}
-.sym{font-family:var(--mono);font-size:calc(13px * var(--scale));font-weight:500;color:var(--goldL);letter-spacing:.04em}
+.sym{font-family:var(--mono);font-size:calc(14px * var(--scale));font-weight:500;color:var(--goldL);letter-spacing:.04em}
 .name{font-size:calc(11px * var(--scale));color:var(--textM);margin-top:2px;line-height:1.3}
 .rk{font-family:var(--mono);font-size:10px;color:var(--borderL)}
 .price-row{display:flex;align-items:baseline;gap:7px;margin-bottom:10px}
-.pval{font-family:var(--mono);font-size:calc(15px * var(--scale));font-weight:500}
+.pval{font-family:var(--mono);font-size:calc(16px * var(--scale));font-weight:500}
 .pchg{font-family:var(--mono);font-size:calc(11px * var(--scale));font-weight:500;padding:1px 5px}
 .pchg.up{color:var(--green);background:var(--greenD)}
 .pchg.dn{color:var(--red);background:var(--redD)}
 .dgrid{display:grid;grid-template-columns:1fr 1fr;gap:5px 12px;margin-bottom:10px}
 .di{display:flex;flex-direction:column;gap:2px}
-.dl{font-family:var(--mono);font-size:calc(9px * var(--scale));letter-spacing:.1em;color:var(--textM);text-transform:uppercase}
-.dv{font-family:var(--mono);font-size:calc(11px * var(--scale));color:var(--textD)}
+.dl{font-family:var(--mono);font-size:calc(10px * var(--scale));letter-spacing:.1em;color:var(--textM);text-transform:uppercase}
+.dv{font-family:var(--mono);font-size:calc(12px * var(--scale));color:var(--textD)}
 .dv.bull{color:var(--green)}
 .dv.bear{color:var(--red)}
 .dv.neut{color:var(--amber)}
 .signal{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);
-  font-size:calc(9px * var(--scale));letter-spacing:.1em;font-weight:500;padding:3px 8px;border:1px solid;margin-top:6px}
+  font-size:calc(10px * var(--scale));letter-spacing:.1em;font-weight:500;padding:3px 8px;border:1px solid;margin-top:6px}
 .signal.dc{color:#27ae72;border-color:rgba(39,174,114,.4);background:rgba(39,174,114,.08)}
 .signal.we{color:#c9a84c;border-color:rgba(201,168,76,.4);background:rgba(201,168,76,.08)}
 .signal.ns{color:#3b82f6;border-color:rgba(59,130,246,.4);background:rgba(59,130,246,.08)}
@@ -183,7 +183,7 @@ h1 em{font-style:italic;color:var(--goldL)}
 /* ── RSI BAR ────────────────────────────────────────────────────────────── */
 .rsi-wrap{margin-top:8px}
 .rsi-top{display:flex;justify-content:space-between;margin-bottom:3px;
-  font-family:var(--mono);font-size:calc(9px * var(--scale));color:var(--textM);letter-spacing:.06em}
+  font-family:var(--mono);font-size:calc(10px * var(--scale));color:var(--textM);letter-spacing:.06em}
 .rsi-bar{height:4px;background:var(--border);position:relative;border-radius:2px;overflow:visible}
 .rsi-zones{position:absolute;inset:0;display:flex;border-radius:2px;overflow:hidden}
 .rz1{background:rgba(224,82,82,.3);width:32%}
@@ -195,7 +195,7 @@ h1 em{font-style:italic;color:var(--goldL)}
 /* ── 52WK BAR ───────────────────────────────────────────────────────────── */
 .wk-wrap{margin-top:7px}
 .wk-top{display:flex;justify-content:space-between;margin-bottom:3px;
-  font-family:var(--mono);font-size:calc(9px * var(--scale));color:var(--textM);letter-spacing:.06em}
+  font-family:var(--mono);font-size:calc(10px * var(--scale));color:var(--textM);letter-spacing:.06em}
 .wk-bar{height:3px;background:var(--border);position:relative;border-radius:2px;overflow:hidden}
 .wk-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--amber),var(--green));width:100%}
 .wk-dot{position:absolute;top:-4px;width:10px;height:10px;border-radius:50%;
@@ -226,6 +226,32 @@ footer{margin-top:64px;padding:32px 0;border-top:1px solid var(--border);
 .brand-handle span{color:var(--goldL)}
 .brand-link{color:var(--goldL);text-decoration:none;transition:color .15s}
 .brand-link:hover{color:var(--gold)}
+
+/* ── MARKET BAR ─────────────────────────────────────────────────────────── */
+.market-bar{display:flex;border:1px solid var(--border);background:var(--surface);
+  margin-bottom:12px;overflow:hidden}
+.mkt-tile{flex:1;padding:12px 16px;border-right:1px solid var(--border);font-family:var(--mono);
+  display:flex;flex-direction:column;gap:7px}
+.mkt-tile:last-child{border-right:none}
+.mkt-row1{display:flex;align-items:baseline;gap:8px}
+.mkt-sym{font-size:11px;font-weight:500;letter-spacing:.12em;color:var(--textD)}
+.mkt-price{font-size:14px;font-weight:500;color:var(--text)}
+.mkt-chg{font-size:11px;margin-left:auto}
+.mkt-chg.up{color:var(--green)} .mkt-chg.dn{color:var(--red)}
+.mkt-range{display:flex;align-items:center;gap:6px;font-size:9px;color:var(--textM)}
+.mkt-bar-track{flex:1;height:3px;background:var(--surface2);position:relative}
+.mkt-bar-fill{height:100%;background:var(--gold);position:absolute;left:0;top:0}
+.mkt-pct{font-size:9px;color:var(--textM);white-space:nowrap}
+.mkt-row3{display:flex;gap:6px;align-items:center;font-size:9px;flex-wrap:wrap}
+.mkt-tag{padding:1px 5px;border:1px solid var(--border)}
+.mkt-tag.bull{color:var(--green);border-color:rgba(39,174,114,.4)}
+.mkt-tag.bear{color:var(--red);border-color:rgba(224,82,82,.4)}
+.mkt-tag.neut{color:var(--textM)}
+.mkt-cross{font-size:9px}
+.mkt-cross.golden{color:var(--gold)}
+.mkt-cross.death{color:var(--red)}
+.mkt-skel{height:72px;background:var(--surface2);animation:shimmer 1.5s infinite;width:100%}
+@media(max-width:768px){.market-bar{flex-wrap:wrap}.mkt-tile{flex:1 1 45%;border-right:none;border-bottom:1px solid var(--border)}.mkt-tile:last-child{border-bottom:none}}
 </style>
 </head>
 <body>
@@ -247,14 +273,16 @@ footer{margin-top:64px;padding:32px 0;border-top:1px solid var(--border);
       <div class="pill">DAILY CACHE</div>
     </div>
     <div class="size-btns">
-      <button class="size-btn" data-scale="0.9">A−</button>
+      <button class="size-btn" data-scale="0.85">A−</button>
       <button class="size-btn" data-scale="1">A</button>
-      <button class="size-btn" data-scale="1.1">A+</button>
+      <button class="size-btn" data-scale="1.2">A+</button>
       <button class="theme-btn" id="theme-btn" title="Toggle theme">☾</button>
     </div>
     <span id="data-date"></span>
   </div>
 </header>
+
+<div class="market-bar" id="market-bar"></div>
 
 <div class="tabs-wrap" id="tabs-wrap"></div>
 
@@ -377,6 +405,63 @@ function getSignal(price, ma50, ma200, rsi) {
   if (rsi!==null && rsi>72)                                    return {cls:'ex',label:'⚠ EXTENDED'};
   if (p50!==null&&p50>0&&p200!==null&&p200>0)                  return {cls:'ut',label:'↑ UPTREND'};
   return {cls:'ns',label:'↓ NEAR SUPPORT'};
+}
+
+// ── MARKET BAR ────────────────────────────────────────────────────────────
+const MKT_SYMS = ['SPY','QQQ','IWM','DIA'];
+
+function renderMktTile(sym, d) {
+  const q = d?.q, rsi = d?.rsi;
+  if (!q?.regularMarketPrice) return `<div class="mkt-tile"><span class="mkt-sym">${sym}</span><span style="color:var(--textM);font-size:10px">N/A</span></div>`;
+  const price  = q.regularMarketPrice;
+  const chg    = q.regularMarketChangePercent ?? 0;
+  const hi52   = q.fiftyTwoWeekHigh, lo52 = q.fiftyTwoWeekLow;
+  const sma50  = q.fiftyDayAverage,  sma200 = q.twoHundredDayAverage;
+  const sign   = chg >= 0 ? '+' : '';
+  const chgCls = chg >= 0 ? 'up' : 'dn';
+
+  const pct52  = hi52 && lo52 ? Math.round((price - lo52) / (hi52 - lo52) * 100) : null;
+
+  const rsiCls = rsi < 40 ? 'bull' : rsi > 70 ? 'bear' : 'neut';
+  const rsiTag = rsi != null ? `<span class="mkt-tag ${rsiCls}">RSI ${Math.round(rsi)}</span>` : '';
+  const ma50tag   = sma50  ? `<span class="mkt-tag ${price > sma50  ? 'bull':'bear'}">${price > sma50  ? '↑':'↓'}50</span>` : '';
+  const ma200tag  = sma200 ? `<span class="mkt-tag ${price > sma200 ? 'bull':'bear'}">${price > sma200 ? '↑':'↓'}200</span>` : '';
+  const cross  = (sma50 && sma200)
+    ? (sma50 > sma200
+        ? `<span class="mkt-cross golden">✦ GOLDEN</span>`
+        : `<span class="mkt-cross death">✕ DEATH</span>`)
+    : '';
+
+  return `<div class="mkt-tile">
+    <div class="mkt-row1">
+      <span class="mkt-sym">${sym}</span>
+      <span class="mkt-price">$${price.toFixed(2)}</span>
+      <span class="mkt-chg ${chgCls}">${sign}${chg.toFixed(2)}%</span>
+    </div>
+    ${pct52 != null ? `<div class="mkt-range">
+      <span>${lo52?.toFixed(0)}</span>
+      <div class="mkt-bar-track"><div class="mkt-bar-fill" style="width:${pct52}%"></div></div>
+      <span>${hi52?.toFixed(0)}</span>
+      <span class="mkt-pct">${pct52}% of 52W</span>
+    </div>` : ''}
+    <div class="mkt-row3">${rsiTag}${ma50tag}${ma200tag}${cross}</div>
+  </div>`;
+}
+
+async function fetchMarketBar(cachedMarket) {
+  const bar = document.getElementById('market-bar');
+  bar.innerHTML = MKT_SYMS.map(() =>
+    `<div class="mkt-tile"><div class="mkt-skel"></div></div>`
+  ).join('');
+
+  let market = cachedMarket;
+  if (!market) {
+    const results = await Promise.all(MKT_SYMS.map(s => fetchTickerData(s)));
+    market = {};
+    MKT_SYMS.forEach((s, i) => { market[s] = results[i]; });
+  }
+  bar.innerHTML = MKT_SYMS.map(sym => renderMktTile(sym, market[sym])).join('');
+  return market;
 }
 
 // ── STATE ─────────────────────────────────────────────────────────────────
@@ -795,12 +880,13 @@ function setDateLabel(txt) { document.getElementById('data-date').textContent = 
   const cached = localStorage.getItem(CACHE_KEY);
   if (cached) {
     try {
-      const {quotes, rsiMap, fetchedAt} = JSON.parse(cached);
+      const {quotes, rsiMap, fetchedAt, marketQuotes} = JSON.parse(cached);
       quotesCache = quotes;
       setStatus('live', 'Loaded from local cache — data current for today');
       setDateLabel(`📅 ${todayStr()}  ·  CACHED ${fetchedAt}`);
       allTickers.forEach(t => populateCard(t, quotes[t.sym]||null, rsiMap[t.sym]??null));
       applyFilters();
+      fetchMarketBar(marketQuotes || null); // uses cached market data if available
       return;
     } catch(e) { localStorage.removeItem(CACHE_KEY); }
   }
@@ -808,6 +894,9 @@ function setDateLabel(txt) { document.getElementById('data-date').textContent = 
   // Fresh fetch — single pass: chart endpoint gives price + closes for MA/RSI
   setStatus('loading', `Loading data for ${allSyms.length} tickers…`);
   setDateLabel(`📅 ${todayStr()}  ·  LOADING…`);
+
+  // Kick off market bar concurrently with ticker batch load
+  const marketBarPromise = fetchMarketBar(null);
 
   const { quotes, rsiMap, loadedCount } = await batchFetchAll(allTickers, 5);
 
@@ -821,8 +910,9 @@ function setDateLabel(txt) { document.getElementById('data-date').textContent = 
 
   // Only cache when real data was loaded — never persist empty results
   const fetchedAt = new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
+  const marketQuotes = await marketBarPromise;
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify({quotes, rsiMap, fetchedAt}));
+    localStorage.setItem(CACHE_KEY, JSON.stringify({quotes, rsiMap, fetchedAt, marketQuotes}));
   } catch(e) {}
 
   setStatus('live', `Live data loaded · ${loadedCount} tickers · refreshes daily`);
