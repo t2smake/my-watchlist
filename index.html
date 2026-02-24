@@ -982,12 +982,22 @@ function updateSectorHeaders(sectorETFs) {
       return;
     }
     const chg    = q.regularMarketChangePercent ?? 0;
+    const price  = q.regularMarketPrice;
+    const ma50v  = q.fiftyDayAverage;
+    const ma200v = q.twoHundredDayAverage;
     const chgCls = chg >= 0 ? 'up' : 'dn';
     const rsiCls = rsi != null ? (rsi < 40 ? 'bull' : rsi > 70 ? 'bear' : 'neut') : 'neut';
+    const p50    = (ma50v  && price) ? (price - ma50v)  / ma50v  * 100 : null;
+    const p200   = (ma200v && price) ? (price - ma200v) / ma200v * 100 : null;
+    const crossBull = (ma50v && ma200v) ? ma50v > ma200v : null;
+    const ma50tag  = p50  != null ? `<span class="mkt-tag ${p50  > 0 ? 'bull':'bear'}">${p50  > 0 ? '↑':'↓'}50</span>`  : '';
+    const ma200tag = p200 != null ? `<span class="mkt-tag ${p200 > 0 ? 'bull':'bear'}">${p200 > 0 ? '↑':'↓'}200</span>` : '';
+    const crossTag = crossBull !== null ? `<span class="mkt-tag ${crossBull ? 'bull':'bear'}">${crossBull ? '↑ GOLDEN':'↓ DEATH'}</span>` : '';
     el.innerHTML =
       `<span class="sec-etf-sym">${sec.etf}</span>` +
       `<span class="mkt-chg ${chgCls}">${chg >= 0 ? '+' : ''}${chg.toFixed(1)}%</span>` +
-      (rsi != null ? `<span class="mkt-tag ${rsiCls}">RSI ${Math.round(rsi)}</span>` : '');
+      (rsi != null ? `<span class="mkt-tag ${rsiCls}">RSI ${Math.round(rsi)}</span>` : '') +
+      ma50tag + ma200tag + crossTag;
     el.style.opacity = '1';
   });
 }
