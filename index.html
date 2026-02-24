@@ -907,16 +907,8 @@ async function fetchTickerData(sym) {
       ? vols.slice(-20).reduce((a,b) => a+b, 0) / Math.min(20, vols.length)
       : null;
 
-    // Find prev close: scan timestamps backwards to get the most recent
-    // completed session (skips today's in-progress bar that Yahoo appends)
-    const rawTimestamps = result.timestamp ?? [];
-    const rawCloses     = result.indicators?.quote?.[0]?.close ?? [];
-    const _now = new Date();
-    const todayStartSec = Date.UTC(_now.getUTCFullYear(), _now.getUTCMonth(), _now.getUTCDate()) / 1000;
-    let prev = null;
-    for (let i = rawTimestamps.length - 1; i >= 0; i--) {
-      if (rawTimestamps[i] < todayStartSec && rawCloses[i] != null) { prev = rawCloses[i]; break; }
-    }
+    // closes[-1] = current session bar (live or today's close); closes[-2] = previous session close
+    const prev = closes.length >= 2 ? closes[closes.length - 2] : null;
     const price = meta.regularMarketPrice;
 
     return {
