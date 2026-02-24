@@ -794,7 +794,8 @@ function populateCard(ticker, q, rsi) {
   const sig   = getSignal(price, ma50, ma200, rsi);
 
   // Cache for filter + CSV export
-  cardDataCache[ticker.sym] = { signal: sig.cls, chg: chgP??null, rsi: rsi, p200: p200??null };
+  const chgAbs = q?.regularMarketChange ?? null;
+  cardDataCache[ticker.sym] = { signal: sig.cls, chg: chgP??null, chgAbs: chgAbs, rsi: rsi, p200: p200??null };
 
   const rsiCls   = rsi !== null ? (rsi < 40 ? 'bull' : rsi > 70 ? 'bear' : 'neut') : null;
   const rsiTag   = rsi !== null
@@ -912,6 +913,7 @@ async function fetchTickerData(sym) {
     return {
       q: {
         regularMarketPrice:         price,
+        regularMarketChange:        prev ? (price - prev) : null,
         regularMarketChangePercent: prev ? (price - prev) / prev * 100 : null,
         regularMarketVolume:        meta.regularMarketVolume ?? null,
         volumeAvg20,
@@ -1022,6 +1024,7 @@ function renderTable() {
       const rsi  = d.rsi;
       const price = q?.regularMarketPrice;
       const chgP  = d.chg;
+      const chgAbs = d.chgAbs ?? null;
       const ma50v  = q?.fiftyDayAverage;
       const ma200v = q?.twoHundredDayAverage;
       const p50   = (ma50v  && price) ? (price - ma50v)  / ma50v  * 100 : null;
@@ -1051,7 +1054,11 @@ function renderTable() {
         <td class="tbl-sym">${t.sym}</td>
         <td class="tbl-name">${t.name}</td>
         <td class="tbl-price">${price != null ? fmtP(price) : '—'}</td>
-        <td class="tbl-chg ${chgCls}">${chgP != null ? ((chgP >= 0 ? '+' : '') + chgP.toFixed(2) + '%') : '—'}</td>
+        <td class="tbl-chg ${chgCls}">${
+  chgAbs != null && chgP != null
+    ? `${chgAbs >= 0 ? '+' : ''}${chgAbs.toFixed(2)} (${chgP >= 0 ? '+' : ''}${chgP.toFixed(2)}%)`
+    : chgP  != null ? `${chgP >= 0 ? '+' : ''}${chgP.toFixed(2)}%` : '—'
+}</td>
         <td><div class="tbl-tags">${rsiTag}${ma50tag}${ma200tag}${crossTag}${volTag}</div></td>
         <td class="tbl-52w"><span class="wk-bucket ${wkBucketCls}">${wkPct != null ? wkPct + '%' : ''}</span> <span style="opacity:.5;font-size:calc(9px * var(--scale))">${wkBucket}</span></td>
         <td class="tbl-sig"><span class="signal ${d.signal || 'nd'}">${sig}</span></td>
@@ -1063,7 +1070,7 @@ function renderTable() {
 
   wrap.innerHTML = `<table class="tbl-view">
     <thead><tr>
-      <th>SYM</th><th>NAME</th><th>PRICE</th><th>CHG</th>
+      <th>SYM</th><th>NAME</th><th>PRICE</th><th>CHANGE</th>
       <th>RSI · MA · CROSS · VOL</th><th>52W</th><th>SIGNAL</th>
     </tr></thead>
     <tbody>${rows}</tbody>

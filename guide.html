@@ -122,6 +122,11 @@ footer{margin-top:64px;padding:32px 0;border-top:1px solid var(--border);
   .range-demos{flex-direction:column}
   .tag-row{flex-direction:column;align-items:flex-start}
 }
+.col-table{width:100%;border-collapse:collapse;margin-top:12px}
+.col-table td{font-size:12px;padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+.col-table td:first-child{font-family:var(--mono);font-size:10px;color:var(--goldL);
+  letter-spacing:.08em;white-space:nowrap;width:130px}
+.col-table tr:last-child td{border-bottom:none}
 </style>
 </head>
 <body>
@@ -309,7 +314,17 @@ footer{margin-top:64px;padding:32px 0;border-top:1px solid var(--border);
   </div>
   <div class="info-block">
     <div class="info-head">≡ Table</div>
-    <div class="info-body">Compact row-per-ticker view. All sectors in one scrollable table. Click any sector header row to collapse or expand that group. Useful for quickly scanning all tickers without scrolling past cards.</div>
+    <div class="info-body">Compact row-per-ticker view. All sectors in one scrollable table. Click any sector header row to collapse or expand that group. Useful for quickly scanning all tickers without scrolling past cards.
+      <table class="col-table">
+        <tr><td>SYM</td><td>Ticker symbol</td></tr>
+        <tr><td>NAME</td><td>Company or ETF name</td></tr>
+        <tr><td>PRICE</td><td>Last market price</td></tr>
+        <tr><td>CHANGE</td><td>Today's $ move + percent, e.g. <code>+1.25 (+0.82%)</code></td></tr>
+        <tr><td>RSI · MA · CROSS · VOL</td><td>Same inline tags as the tile view</td></tr>
+        <tr><td>52W</td><td>Position in 52-week range (% from low, + NEAR LOW / MID / NEAR HIGH bucket)</td></tr>
+        <tr><td>SIGNAL</td><td>The signal badge (DC, WE, NS, UT, EX)</td></tr>
+      </table>
+    </div>
   </div>
 </section>
 
