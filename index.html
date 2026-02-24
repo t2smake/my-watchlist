@@ -249,6 +249,7 @@ button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 .tbl-sig{min-width:120px}
 .tbl-sec-count{font-family:var(--mono);font-size:10px;font-weight:400;color:var(--textM);margin-left:8px}
 .tbl-sec-row.hidden{display:none}
+.sec-etf-sym{font-family:var(--mono);font-size:10px;letter-spacing:.08em;color:var(--goldL);font-weight:500}
 
 /* ── FOOTER ─────────────────────────────────────────────────────────────── */
 footer{margin-top:64px;padding:32px 0;border-top:1px solid var(--border);
@@ -355,43 +356,43 @@ footer{margin-top:64px;padding:32px 0;border-top:1px solid var(--border);
 <script>
 // ── SECTOR / TICKER DATA ──────────────────────────────────────────────────
 const SECTORS = [
-  { title:'Memory', icon:'💾',
+  { title:'Memory', icon:'💾', etf:'SMH',
     tickers:[{sym:'MU',name:'Micron Technology'},{sym:'WDC',name:'Western Digital'},{sym:'STX',name:'Seagate Technology'}] },
-  { title:'Semiconductors', icon:'🔷',
+  { title:'Semiconductors', icon:'🔷', etf:'SMH',
     tickers:[{sym:'NVDA',name:'Nvidia'},{sym:'AMD',name:'Advanced Micro Devices'},{sym:'TSM',name:'Taiwan Semiconductor'}] },
-  { title:'Fiber Optics', icon:'🔆',
+  { title:'Fiber Optics', icon:'🔆', etf:'XLK',
     tickers:[{sym:'CIEN',name:'Ciena'},{sym:'LITE',name:'Lumentum'},{sym:'COHR',name:'Coherent'}] },
-  { title:'Copper', icon:'🟤',
+  { title:'Copper', icon:'🟤', etf:'COPX',
     tickers:[{sym:'BHP',name:'BHP Group'},{sym:'FCX',name:'Freeport-McMoRan'},{sym:'TECK',name:'Teck Resources'}] },
-  { title:'Silver', icon:'🪙',
+  { title:'Silver', icon:'🪙', etf:'SIL',
     tickers:[{sym:'PAAS',name:'Pan American Silver'},{sym:'AG',name:'First Majestic Silver'},{sym:'SVM',name:'Silvercorp Metals'}] },
-  { title:'Gold', icon:'✦',
+  { title:'Gold', icon:'✦', etf:'GDX',
     tickers:[{sym:'NEM',name:'Newmont'},{sym:'AEM',name:'Agnico Eagle Mines'},{sym:'GFI',name:'Gold Fields'}] },
-  { title:'Uranium', icon:'⚛️',
+  { title:'Uranium', icon:'⚛️', etf:'URA',
     tickers:[{sym:'CCJ',name:'Cameco'},{sym:'NXE',name:'NexGen Energy'},{sym:'UUUU',name:'Energy Fuels'}] },
-  { title:'Oil & Gas', icon:'🛢️',
+  { title:'Oil & Gas', icon:'🛢️', etf:'XLE',
     tickers:[{sym:'XOM',name:'ExxonMobil'},{sym:'CVX',name:'Chevron'},{sym:'SHEL',name:'Shell'}] },
-  { title:'Aerospace & Defense', icon:'🚀',
+  { title:'Aerospace & Defense', icon:'🚀', etf:'ITA',
     tickers:[{sym:'GE',name:'GE Aerospace'},{sym:'RTX',name:'RTX Corporation'},{sym:'LMT',name:'Lockheed Martin'}] },
-  { title:'Semiconductor Equipment', icon:'🔬',
+  { title:'Semiconductor Equipment', icon:'🔬', etf:'SOXX',
     tickers:[{sym:'ASML',name:'ASML Holding'},{sym:'AMAT',name:'Applied Materials'},{sym:'LRCX',name:'Lam Research',watchNote:true}] },
-  { title:'Electrical-Power Equipment', icon:'⚡',
+  { title:'Electrical-Power Equipment', icon:'⚡', etf:'GRID',
     tickers:[{sym:'ETN',name:'Eaton'},{sym:'VRT',name:'Vertiv Holdings'},{sym:'ROK',name:'Rockwell Automation'}] },
-  { title:'Alternative Energy', icon:'🌿',
+  { title:'Alternative Energy', icon:'🌿', etf:'ICLN',
     tickers:[{sym:'GEV',name:'GE Vernova'},{sym:'BE',name:'Bloom Energy'},{sym:'PSIX',name:'Power Solutions Intl.'}] },
-  { title:'Electronic Contract Mfg.', icon:'🏭',
+  { title:'Electronic Contract Mfg.', icon:'🏭', etf:'XLI',
     tickers:[{sym:'JBL',name:'Jabil Inc.'},{sym:'FLEX',name:'Flex Ltd.'},{sym:'GLW',name:'Corning Inc.'}] },
-  { title:'Machinery', icon:'⚙️',
+  { title:'Machinery', icon:'⚙️', etf:'XLI',
     tickers:[{sym:'CAT',name:'Caterpillar'},{sym:'AGCO',name:'AGCO Corporation'},{sym:'TEX',name:'Terex Corporation'}] },
-  { title:'Trucking / Transports', icon:'🚛',
+  { title:'Trucking / Transports', icon:'🚛', etf:'IYT',
     tickers:[{sym:'FDX',name:'FedEx'},{sym:'ODFL',name:'Old Dominion Freight'},{sym:'JBHT',name:'J.B. Hunt Transport'}] },
-  { title:'Diversified Operations', icon:'🏢',
+  { title:'Diversified Operations', icon:'🏢', etf:'XLI',
     tickers:[{sym:'HON',name:'Honeywell Intl.'},{sym:'JCI',name:'Johnson Controls'},{sym:'SOLS',name:'Soliton Systems'}] },
-  { title:'Building / AC / Construction', icon:'🏗️',
+  { title:'Building / AC / Construction', icon:'🏗️', etf:'PAVE',
     tickers:[{sym:'PWR',name:'Quanta Services'},{sym:'TT',name:'Trane Technologies'},{sym:'FIX',name:'Comfort Systems USA'}] },
-  { title:'Leisure Products / Retail', icon:'🎯',
+  { title:'Leisure Products / Retail', icon:'🎯', etf:'XLY',
     tickers:[{sym:'SPHR',name:'Sphere Entertainment'},{sym:'AEO',name:'American Eagle'},{sym:'VSCO',name:"Victoria's Secret"}] },
-  { title:'Solar', icon:'☀️',
+  { title:'Solar', icon:'☀️', etf:'TAN',
     tickers:[{sym:'ENPH',name:'Enphase Energy'},{sym:'ARRY',name:'Array Technologies'},{sym:'SHLS',name:'Shoals Technologies'}] },
 ];
 
@@ -438,6 +439,20 @@ function getSignal(price, ma50, ma200, rsi) {
   if (rsi!==null && rsi>72)                                    return {cls:'ex',label:'⚠ EXTENDED'};
   if (p50!==null&&p50>0&&p200!==null&&p200>0)                  return {cls:'ut',label:'↑ UPTREND'};
   return {cls:'ns',label:'↔ MIXED'};
+}
+
+// ── SECTOR ETF REFERENCE ──────────────────────────────────────────────────
+const SECTOR_ETF_SYMS = [...new Set(SECTORS.map(s => s.etf).filter(Boolean))];
+// 16 unique: SMH, XLK, COPX, SIL, GDX, URA, XLE, ITA, SOXX, GRID, ICLN, XLI, IYT, PAVE, XLY, TAN
+
+async function fetchSectorETFs(cachedETFs) {
+  if (cachedETFs) return cachedETFs;
+  const results = await Promise.allSettled(SECTOR_ETF_SYMS.map(s => fetchTickerData(s)));
+  const etfs = {};
+  SECTOR_ETF_SYMS.forEach((s, i) => {
+    etfs[s] = results[i].status === 'fulfilled' ? results[i].value : { q: null, rsi: null };
+  });
+  return etfs;
 }
 
 // ── MARKET BAR ────────────────────────────────────────────────────────────
@@ -740,7 +755,7 @@ function renderSkeletons() {
       <div class="sector-hdr">
         <div class="sector-title">${sec.title}</div>
         <div style="display:flex;align-items:center;gap:10px">
-          <span class="mkt-tag neut" id="srsi-${si}" style="opacity:0"></span>
+          <div class="sec-etf-wrap" id="srsi-${si}" style="opacity:0;display:flex;align-items:center;gap:6px"></div>
           <div class="sector-ico">${sec.icon}</div>
         </div>
       </div>
@@ -947,17 +962,32 @@ function updateStaticCounts() {
   if (pillTick) pillTick.textContent = `${nTick} TICKERS`;
 }
 
-// ── SECTOR RSI AVERAGES ───────────────────────────────────────────────────
-function updateSectorRSI() {
+// ── SECTOR ETF HEADERS ────────────────────────────────────────────────────
+function updateSectorHeaders(sectorETFs) {
   SECTORS.forEach((sec, si) => {
     const el = document.getElementById(`srsi-${si}`);
     if (!el) return;
-    const vals = sec.tickers.map(t => cardDataCache[t.sym]?.rsi).filter(r => r != null);
-    if (!vals.length) return;
-    const avg = vals.reduce((a,b) => a+b, 0) / vals.length;
-    const cls = avg < 45 ? 'bull' : avg > 65 ? 'bear' : 'neut';
-    el.className = `mkt-tag ${cls}`;
-    el.textContent = `RSI ${avg.toFixed(0)}`;
+    const d   = sectorETFs?.[sec.etf];
+    const q   = d?.q;
+    const rsi = d?.rsi;
+    if (!sec.etf || !q?.regularMarketPrice) {
+      // fallback: avg RSI of group tickers
+      const vals = sec.tickers.map(t => cardDataCache[t.sym]?.rsi).filter(r => r != null);
+      if (vals.length) {
+        const avg = vals.reduce((a,b) => a+b, 0) / vals.length;
+        const cls = avg < 45 ? 'bull' : avg > 65 ? 'bear' : 'neut';
+        el.innerHTML = `<span class="mkt-tag ${cls}">RSI ${avg.toFixed(0)}</span>`;
+        el.style.opacity = '1';
+      }
+      return;
+    }
+    const chg    = q.regularMarketChangePercent ?? 0;
+    const chgCls = chg >= 0 ? 'up' : 'dn';
+    const rsiCls = rsi != null ? (rsi < 40 ? 'bull' : rsi > 70 ? 'bear' : 'neut') : 'neut';
+    el.innerHTML =
+      `<span class="sec-etf-sym">${sec.etf}</span>` +
+      `<span class="mkt-chg ${chgCls}">${chg >= 0 ? '+' : ''}${chg.toFixed(1)}%</span>` +
+      (rsi != null ? `<span class="mkt-tag ${rsiCls}">RSI ${Math.round(rsi)}</span>` : '');
     el.style.opacity = '1';
   });
 }
@@ -1095,13 +1125,13 @@ function setDateLabel(txt) { document.getElementById('data-date').textContent = 
   const cached = localStorage.getItem(CACHE_KEY);
   if (cached) {
     try {
-      const {quotes, rsiMap, fetchedAt, marketQuotes} = JSON.parse(cached);
+      const {quotes, rsiMap, fetchedAt, marketQuotes, sectorETFs} = JSON.parse(cached);
       quotesCache = quotes;
       setStatus('live', 'Loaded from local cache — data current for today');
       setDateLabel(`📅 ${todayStr()}  ·  CACHED ${fetchedAt}`);
       allTickers.forEach(t => populateCard(t, quotes[t.sym]||null, rsiMap[t.sym]??null));
       applyFilters();
-      updateSectorRSI();
+      updateSectorHeaders(sectorETFs || null);
       renderTable();
       toggleView(savedView);
       fetchMarketBar(marketQuotes || null); // uses cached market data if available
@@ -1113,8 +1143,9 @@ function setDateLabel(txt) { document.getElementById('data-date').textContent = 
   setStatus('loading', `Loading data for ${allSyms.length} tickers…`);
   setDateLabel(`📅 ${todayStr()}  ·  LOADING…`);
 
-  // Kick off market bar concurrently with ticker batch load
+  // Kick off market bar + sector ETFs concurrently with ticker batch load
   const marketBarPromise = fetchMarketBar(null);
+  const sectorETFPromise = fetchSectorETFs(null);
 
   const { quotes, rsiMap, loadedCount } = await batchFetchAll(allTickers, 5);
 
@@ -1128,12 +1159,12 @@ function setDateLabel(txt) { document.getElementById('data-date').textContent = 
 
   // Only cache when real data was loaded — never persist empty results
   const fetchedAt = new Date().toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit'});
-  const marketQuotes = await marketBarPromise;
+  const [marketQuotes, sectorETFs] = await Promise.all([marketBarPromise, sectorETFPromise]);
   try {
-    localStorage.setItem(CACHE_KEY, JSON.stringify({quotes, rsiMap, fetchedAt, marketQuotes}));
+    localStorage.setItem(CACHE_KEY, JSON.stringify({quotes, rsiMap, fetchedAt, marketQuotes, sectorETFs}));
   } catch(e) {}
 
-  updateSectorRSI();
+  updateSectorHeaders(sectorETFs);
   renderTable();
   toggleView(savedView);
   setStatus('live', `Live data loaded · ${loadedCount} tickers · refreshes daily`);
