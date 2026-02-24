@@ -907,7 +907,8 @@ async function fetchTickerData(sym) {
       ? vols.slice(-20).reduce((a,b) => a+b, 0) / Math.min(20, vols.length)
       : null;
 
-    const prev  = meta.chartPreviousClose ?? meta.previousClose ?? null;
+    const prevClose = closes.length > 0 ? closes[closes.length - 1] : null;
+    const prev  = meta.previousClose ?? prevClose ?? null;
     const price = meta.regularMarketPrice;
 
     return {
