@@ -215,6 +215,41 @@ h1 em{font-style:italic;color:var(--goldL)}
 .clear-hint-btn:hover{background:var(--goldD)}
 button:focus-visible{outline:2px solid var(--gold);outline-offset:2px}
 
+/* ── VIEW TOGGLE ────────────────────────────────────────────────────────── */
+.view-btns{display:flex;gap:2px}
+.view-btn{font-family:var(--mono);font-size:13px;padding:3px 9px;
+  border:1px solid var(--border);background:none;color:var(--textM);cursor:pointer;transition:all .15s}
+.view-btn:hover{border-color:var(--borderL);color:var(--textD)}
+.view-btn.v-active{border-color:var(--gold);color:var(--goldL);background:var(--goldD)}
+
+/* ── TABLE VIEW ─────────────────────────────────────────────────────────── */
+#table-view{overflow-x:auto;margin-bottom:28px}
+.tbl-view{width:100%;border-collapse:collapse;font-family:var(--mono)}
+.tbl-view thead th{font-size:calc(9px * var(--scale));letter-spacing:.1em;text-transform:uppercase;
+  color:var(--textM);padding:7px 12px;border-bottom:2px solid var(--border);
+  white-space:nowrap;text-align:left;background:var(--bg);position:sticky;top:0;z-index:2}
+.tbl-view td{font-size:calc(11px * var(--scale));padding:5px 12px;
+  border-bottom:1px solid var(--border);white-space:nowrap;vertical-align:middle}
+.tbl-sec-row{background:var(--surface);cursor:pointer;user-select:none}
+.tbl-sec-row td{padding:9px 12px;font-family:var(--serif);font-size:14px;font-weight:700}
+.tbl-sec-row:hover td{background:var(--surface2)}
+.tbl-chevron{font-size:9px;color:var(--textM);margin-right:8px;
+  display:inline-block;transition:transform .2s}
+.tbl-sec-row.sec-collapsed .tbl-chevron{transform:rotate(-90deg)}
+.tbl-row:hover td{background:rgba(201,168,76,.018)}
+.tbl-row.hidden{display:none}
+.tbl-row.sec-collapsed{display:none}
+.tbl-sym{color:var(--goldL);font-weight:500;min-width:52px}
+.tbl-name{color:var(--textM);max-width:180px;overflow:hidden;text-overflow:ellipsis}
+.tbl-price{font-weight:500;min-width:72px}
+.tbl-chg{min-width:60px}
+.tbl-chg.up{color:var(--green)} .tbl-chg.dn{color:var(--red)}
+.tbl-tags{display:flex;gap:4px;flex-wrap:nowrap}
+.tbl-52w{min-width:90px}
+.tbl-sig{min-width:120px}
+.tbl-sec-count{font-family:var(--mono);font-size:10px;font-weight:400;color:var(--textM);margin-left:8px}
+.tbl-sec-row.hidden{display:none}
+
 /* ── FOOTER ─────────────────────────────────────────────────────────────── */
 footer{margin-top:64px;padding:32px 0;border-top:1px solid var(--border);
   display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:20px}
@@ -296,6 +331,7 @@ footer{margin-top:64px;padding:32px 0;border-top:1px solid var(--border);
 
 <div class="sec-label" id="sec-label">19 Sectors · 57 Tickers · RSI(14) + MA50/200 + Fundamentals</div>
 <div class="sectors-grid" id="sectors-grid"></div>
+<div id="table-view" style="display:none"></div>
 <div class="no-results" id="no-results" style="display:none">No tickers match the current filter.&nbsp;<button class="clear-hint-btn" id="clear-filter-hint">Clear filter</button></div>
 
 <footer>
@@ -460,7 +496,8 @@ async function fetchMarketBar(cachedMarket) {
 }
 
 // ── STATE ─────────────────────────────────────────────────────────────────
-const state = { sector:'ALL', signal:'ALL' };
+const state = { sector:'ALL', signal:'ALL', view:'tiles' };
+const collapsedSectors = new Set(); // tracks which sector indices are collapsed
 const cardDataCache = {}; // sym -> { signal, chg, rsi, p200 }
 let quotesCache = {};     // sym -> full Yahoo quote object
 
@@ -528,8 +565,16 @@ function buildControls() {
       <button class="filter-btn" data-sig="ut">↑ UPTREND</button>
       <button class="filter-btn" data-sig="ex">⚠ EXTENDED</button>
     </div>
+    <div class="view-btns">
+      <button class="view-btn v-active" data-view="tiles" title="Tile view">⊞</button>
+      <button class="view-btn" data-view="table" title="Table view">≡</button>
+    </div>
     <button class="csv-btn" id="csv-btn">⬇ EXPORT CSV</button>
     <span class="results-count" id="results-count"></span>`;
+
+  document.querySelectorAll('.view-btn').forEach(btn =>
+    btn.addEventListener('click', () => toggleView(btn.dataset.view))
+  );
 
   document.getElementById('filter-btns').querySelectorAll('.filter-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -606,6 +651,23 @@ function applyFilters() {
   const noRes = document.getElementById('no-results');
   if (noRes) noRes.style.display = totalVisible === 0 ? 'block' : 'none';
   updateFilterCounts();
+
+  // Table view filtering
+  document.querySelectorAll('#table-view .tbl-row').forEach(row => {
+    const sym = row.dataset.sym;
+    const si  = +row.dataset.si;
+    const sec = SECTORS[si];
+    const d   = cardDataCache[sym] || {};
+    const sectorMatch = state.sector === 'ALL' || state.sector === sec?.title;
+    const signalMatch = state.signal === 'ALL' || d.signal === state.signal;
+    row.classList.toggle('hidden', !sectorMatch || !signalMatch);
+  });
+  // Hide sector header rows if all their tickers are filtered out
+  document.querySelectorAll('#table-view .tbl-sec-row').forEach(secRow => {
+    const si = +secRow.dataset.si;
+    const anyVisible = document.querySelectorAll(`#table-view .tbl-row[data-si="${si}"]:not(.hidden)`).length > 0;
+    secRow.classList.toggle('hidden', !anyVisible);
+  });
 }
 
 // ── CSV EXPORT ────────────────────────────────────────────────────────────
@@ -900,6 +962,99 @@ function updateSectorRSI() {
   });
 }
 
+// ── RENDER TABLE ──────────────────────────────────────────────────────────
+function renderTable() {
+  const wrap = document.getElementById('table-view');
+  if (!wrap) return;
+
+  const rows = SECTORS.map((sec, si) => {
+    const rsiEl = document.getElementById(`srsi-${si}`);
+    const rsiTag = rsiEl?.textContent ? rsiEl.outerHTML : '';
+    const headerRow = `<tr class="tbl-sec-row${collapsedSectors.has(si)?' sec-collapsed':''}" data-si="${si}">
+      <td colspan="7"><span class="tbl-chevron">▼</span>${sec.icon} ${sec.title}
+        ${rsiTag}<span class="tbl-sec-count">${sec.tickers.length} tickers</span></td>
+    </tr>`;
+
+    const tickerRows = sec.tickers.map(t => {
+      const q    = quotesCache[t.sym];
+      const d    = cardDataCache[t.sym] || {};
+      const rsi  = d.rsi;
+      const price = q?.regularMarketPrice;
+      const chgP  = d.chg;
+      const ma50v  = q?.fiftyDayAverage;
+      const ma200v = q?.twoHundredDayAverage;
+      const p50   = (ma50v  && price) ? (price - ma50v)  / ma50v  * 100 : null;
+      const p200  = (ma200v && price) ? (price - ma200v) / ma200v * 100 : null;
+      const wkH = q?.fiftyTwoWeekHigh, wkL = q?.fiftyTwoWeekLow;
+      const wkPct = (wkH && wkL && price) ? Math.round((price - wkL) / (wkH - wkL) * 100) : null;
+      const wkBucket    = wkPct == null ? '' : wkPct <= 25 ? 'NEAR LOW' : wkPct >= 75 ? 'NEAR HIGH' : 'MID';
+      const wkBucketCls = wkPct == null ? '' : wkPct <= 25 ? 'near-low' : wkPct >= 75 ? 'near-high' : 'mid';
+      const volRatio = (q?.volumeAvg20 && q?.regularMarketVolume) ? q.regularMarketVolume / q.volumeAvg20 : null;
+
+      const rsiCls   = rsi != null ? (rsi < 40 ? 'bull' : rsi > 70 ? 'bear' : 'neut') : null;
+      const rsiTag   = rsi != null ? `<span class="mkt-tag ${rsiCls}">RSI ${rsi.toFixed(1)}</span>` : '';
+      const ma50tag  = p50  != null ? `<span class="mkt-tag ${p50  > 0 ? 'bull':'bear'}">${p50  > 0 ? '↑':'↓'}50</span>`  : '';
+      const ma200tag = p200 != null ? `<span class="mkt-tag ${p200 > 0 ? 'bull':'bear'}">${p200 > 0 ? '↑':'↓'}200</span>` : '';
+      const crossBull = (ma50v && ma200v) ? ma50v > ma200v : null;
+      const crossTag  = crossBull !== null
+        ? `<span class="mkt-tag ${crossBull ? 'bull':'bear'}">${crossBull ? '↑ GOLDEN':'↓ DEATH'}</span>` : '';
+      const volTag = volRatio != null
+        ? `<span class="mkt-tag ${volRatio > 1.3 ? 'bull' : volRatio < 0.7 ? 'neut' : ''}">${volRatio.toFixed(1)}×</span>` : '';
+
+      const sigMap = {dc:'⬇ DC', we:'◎ WE', ns:'↔ MX', ut:'↑ UT', ex:'⚠ EX', nd:'—'};
+      const sig = d.signal ? (sigMap[d.signal] || d.signal) : '—';
+      const chgCls = (chgP ?? 0) >= 0 ? 'up' : 'dn';
+      const rowCls = `tbl-row${collapsedSectors.has(si) ? ' sec-collapsed' : ''}`;
+
+      return `<tr class="${rowCls}" data-si="${si}" data-sym="${t.sym}">
+        <td class="tbl-sym">${t.sym}</td>
+        <td class="tbl-name">${t.name}</td>
+        <td class="tbl-price">${price != null ? fmtP(price) : '—'}</td>
+        <td class="tbl-chg ${chgCls}">${chgP != null ? ((chgP >= 0 ? '+' : '') + chgP.toFixed(2) + '%') : '—'}</td>
+        <td><div class="tbl-tags">${rsiTag}${ma50tag}${ma200tag}${crossTag}${volTag}</div></td>
+        <td class="tbl-52w"><span class="wk-bucket ${wkBucketCls}">${wkPct != null ? wkPct + '%' : ''}</span> <span style="opacity:.5;font-size:calc(9px * var(--scale))">${wkBucket}</span></td>
+        <td class="tbl-sig"><span class="signal ${d.signal || 'nd'}">${sig}</span></td>
+      </tr>`;
+    }).join('');
+
+    return headerRow + tickerRows;
+  }).join('');
+
+  wrap.innerHTML = `<table class="tbl-view">
+    <thead><tr>
+      <th>SYM</th><th>NAME</th><th>PRICE</th><th>CHG</th>
+      <th>RSI · MA · CROSS · VOL</th><th>52W</th><th>SIGNAL</th>
+    </tr></thead>
+    <tbody>${rows}</tbody>
+  </table>`;
+
+  // Wire sector header collapse/expand handlers
+  wrap.querySelectorAll('.tbl-sec-row').forEach(row => {
+    row.addEventListener('click', () => {
+      const si = +row.dataset.si;
+      if (collapsedSectors.has(si)) collapsedSectors.delete(si);
+      else collapsedSectors.add(si);
+      row.classList.toggle('sec-collapsed', collapsedSectors.has(si));
+      wrap.querySelectorAll(`.tbl-row[data-si="${si}"]`).forEach(r =>
+        r.classList.toggle('sec-collapsed', collapsedSectors.has(si))
+      );
+    });
+  });
+}
+
+// ── TOGGLE VIEW ───────────────────────────────────────────────────────────
+function toggleView(mode) {
+  state.view = mode;
+  document.getElementById('sectors-grid').style.display = mode === 'tiles' ? '' : 'none';
+  document.getElementById('table-view').style.display   = mode === 'table' ? '' : 'none';
+  document.querySelectorAll('.view-btn').forEach(b =>
+    b.classList.toggle('v-active', b.dataset.view === mode)
+  );
+  if (mode === 'table') renderTable();
+  applyFilters();
+  try { localStorage.setItem('wl_view', mode); } catch(e) {}
+}
+
 // ── STATUS ────────────────────────────────────────────────────────────────
 function setStatus(s, msg) {
   document.getElementById('dot').className = `dot ${s}`;
@@ -914,6 +1069,7 @@ function setDateLabel(txt) { document.getElementById('data-date').textContent = 
   buildTabs();
   buildControls();
   updateStaticCounts();
+  const savedView = localStorage.getItem('wl_view') || 'tiles';
 
   // Clear-filter hint button
   document.getElementById('clear-filter-hint')?.addEventListener('click', () => {
@@ -946,6 +1102,8 @@ function setDateLabel(txt) { document.getElementById('data-date').textContent = 
       allTickers.forEach(t => populateCard(t, quotes[t.sym]||null, rsiMap[t.sym]??null));
       applyFilters();
       updateSectorRSI();
+      renderTable();
+      toggleView(savedView);
       fetchMarketBar(marketQuotes || null); // uses cached market data if available
       return;
     } catch(e) { localStorage.removeItem(CACHE_KEY); }
@@ -976,6 +1134,8 @@ function setDateLabel(txt) { document.getElementById('data-date').textContent = 
   } catch(e) {}
 
   updateSectorRSI();
+  renderTable();
+  toggleView(savedView);
   setStatus('live', `Live data loaded · ${loadedCount} tickers · refreshes daily`);
   setDateLabel(`📅 ${todayStr()}  ·  FETCHED ${fetchedAt}`);
 })();
