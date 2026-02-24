@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guide · Active Sector Watchlist</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:#08090c; --surface:#0f1117; --surface2:#141720;
+  --border:#1c2030; --borderL:#252c3d;
+  --gold:#c9a84c; --goldL:#e8c97a; --goldD:rgba(201,168,76,.12);
+  --green:#27ae72; --greenD:rgba(39,174,114,.12);
+  --red:#e05252;   --redD:rgba(224,82,82,.12);
+  --blue:#3b82f6;  --blueD:rgba(59,130,246,.12);
+  --amber:#f59e0b; --amberD:rgba(245,158,11,.12);
+  --text:#dde4f0; --textM:#5a6480; --textD:#8a95b0;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'IBM Plex Sans',sans-serif;
+  --serif:'Playfair Display',serif;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);font-weight:300;min-height:100vh;overflow-x:hidden}
+body::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;
+  background:radial-gradient(ellipse 70% 40% at 15% 5%,rgba(201,168,76,.05) 0%,transparent 70%),
+             radial-gradient(ellipse 50% 50% at 85% 95%,rgba(59,130,246,.04) 0%,transparent 70%)}
+.wrap{max-width:760px;margin:0 auto;padding:0 28px;position:relative;z-index:1}
+
+/* ── HEADER ─────────────────────────────────────────────────────────────── */
+header{padding:48px 0 36px;border-bottom:1px solid var(--border);margin-bottom:48px}
+.eyebrow{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:16px;display:flex;align-items:center;gap:12px}
+.eyebrow::before{content:'';display:inline-block;width:20px;height:1px;background:var(--gold)}
+.back-link{color:var(--goldL);text-decoration:none;font-family:var(--mono);font-size:10px;
+  letter-spacing:.12em;display:inline-flex;align-items:center;gap:6px;transition:color .15s;margin-bottom:22px}
+.back-link:hover{color:var(--gold)}
+.back-link::before{content:'←';font-size:12px}
+h1{font-family:var(--serif);font-size:clamp(26px,4.5vw,46px);font-weight:900;line-height:1.08;
+   letter-spacing:-.02em;margin-bottom:10px}
+h1 em{font-style:italic;color:var(--goldL)}
+.sub{font-size:13px;color:var(--textM);line-height:1.75}
+
+/* ── SECTIONS ───────────────────────────────────────────────────────────── */
+.guide-section{margin-bottom:52px}
+.sec-label{font-family:var(--mono);font-size:10px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--textM);margin-bottom:20px;display:flex;align-items:center;gap:14px}
+.sec-label::after{content:'';flex:1;height:1px;background:var(--border)}
+.sec-num{color:var(--gold);font-weight:500}
+h2{font-family:var(--serif);font-size:20px;font-weight:700;margin-bottom:14px;color:var(--text)}
+p{font-size:13px;color:var(--textD);line-height:1.8;margin-bottom:14px}
+p:last-child{margin-bottom:0}
+
+/* ── SIGNAL CARDS ────────────────────────────────────────────────────────── */
+.signal-grid{display:flex;flex-direction:column;gap:8px}
+.signal-card{display:grid;grid-template-columns:160px 1fr;gap:0;
+  border:1px solid var(--border);background:var(--surface);overflow:hidden}
+.signal-left{padding:14px 16px;display:flex;align-items:center}
+.signal-badge{font-family:var(--mono);font-size:10px;letter-spacing:.1em;font-weight:500;
+  padding:4px 10px;border:1px solid;white-space:nowrap}
+.signal-badge.dc{color:#27ae72;border-color:rgba(39,174,114,.4);background:rgba(39,174,114,.08)}
+.signal-badge.we{color:#c9a84c;border-color:rgba(201,168,76,.4);background:rgba(201,168,76,.08)}
+.signal-badge.ns{color:#3b82f6;border-color:rgba(59,130,246,.4);background:rgba(59,130,246,.08)}
+.signal-badge.ut{color:#8a95b0;border-color:rgba(138,149,176,.3);background:rgba(138,149,176,.05)}
+.signal-badge.ex{color:#e05252;border-color:rgba(224,82,82,.4);background:rgba(224,82,82,.08)}
+.signal-right{padding:14px 16px;border-left:1px solid var(--border)}
+.signal-cond{font-family:var(--mono);font-size:10px;color:var(--textM);letter-spacing:.06em;margin-bottom:5px}
+.signal-desc{font-size:12px;color:var(--textD);line-height:1.6}
+
+/* ── TAG DEMOS ───────────────────────────────────────────────────────────── */
+.tag-rows{display:flex;flex-direction:column;gap:10px}
+.tag-row{display:flex;align-items:center;gap:12px;padding:10px 14px;
+  border:1px solid var(--border);background:var(--surface)}
+.tag-demo{display:flex;gap:5px;align-items:center;min-width:90px}
+.mkt-tag{font-family:var(--mono);font-size:9px;padding:1px 5px;border:1px solid var(--border)}
+.mkt-tag.bull{color:var(--green);border-color:rgba(39,174,114,.4)}
+.mkt-tag.bear{color:var(--red);border-color:rgba(224,82,82,.4)}
+.mkt-tag.neut{color:var(--textM)}
+.mkt-tag.gold{color:var(--goldL);border-color:rgba(201,168,76,.4)}
+.tag-explain{font-size:12px;color:var(--textD);line-height:1.5}
+
+/* ── INFO BLOCKS ─────────────────────────────────────────────────────────── */
+.info-block{border:1px solid var(--border);background:var(--surface);padding:18px 20px;margin-bottom:12px}
+.info-block:last-child{margin-bottom:0}
+.info-head{font-family:var(--mono);font-size:10px;letter-spacing:.12em;color:var(--gold);
+  text-transform:uppercase;margin-bottom:8px}
+.info-body{font-size:12px;color:var(--textD);line-height:1.7}
+.info-body code{font-family:var(--mono);font-size:10px;background:var(--surface2);
+  padding:1px 5px;border:1px solid var(--borderL);color:var(--goldL)}
+
+/* ── 52W DEMO ────────────────────────────────────────────────────────────── */
+.range-demos{display:flex;gap:8px;flex-wrap:wrap}
+.range-demo{flex:1;min-width:140px;border:1px solid var(--border);background:var(--surface);
+  padding:12px 14px}
+.range-label{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.range-label.near-low{color:var(--green)}
+.range-label.mid{color:var(--textM)}
+.range-label.near-high{color:var(--red)}
+.range-bar-wrap{height:4px;background:var(--border);position:relative;border-radius:2px;overflow:visible;margin-bottom:8px}
+.range-bar-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--amber),var(--green));width:100%;border-radius:2px}
+.range-dot{position:absolute;top:-3px;width:10px;height:10px;border-radius:50%;
+  background:var(--goldL);border:1.5px solid var(--bg);transform:translateX(-50%)}
+.range-desc{font-size:11px;color:var(--textM);line-height:1.5}
+
+/* ── CODE ────────────────────────────────────────────────────────────────── */
+.code-block{font-family:var(--mono);font-size:11px;background:var(--surface2);
+  border:1px solid var(--borderL);padding:14px 16px;color:var(--textD);line-height:1.6;overflow-x:auto}
+.code-block .c{color:var(--textM)}
+.code-block .v{color:var(--goldL)}
+
+/* ── FOOTER ──────────────────────────────────────────────────────────────── */
+footer{margin-top:64px;padding:32px 0;border-top:1px solid var(--border);
+  display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.footer-note{font-size:11px;color:var(--textM);line-height:1.6}
+.brand-link{color:var(--goldL);text-decoration:none;transition:color .15s}
+.brand-link:hover{color:var(--gold)}
+
+/* ── RESPONSIVE ──────────────────────────────────────────────────────────── */
+@media(max-width:600px){
+  .signal-card{grid-template-columns:1fr}
+  .signal-right{border-left:none;border-top:1px solid var(--border)}
+  .range-demos{flex-direction:column}
+  .tag-row{flex-direction:column;align-items:flex-start}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <a class="back-link" href="index.html">Back to Watchlist</a>
+  <div class="eyebrow">
+    Active Investment Monitor <span style="color:var(--textM)">·</span> Reference Guide
+  </div>
+  <h1>How to Read the <em>Watchlist</em></h1>
+  <p class="sub">Signals, tags, views, and filters — explained.</p>
+</header>
+
+<!-- 1. OVERVIEW -->
+<section class="guide-section">
+  <div class="sec-label"><span class="sec-num">01</span> Overview</div>
+  <p>
+    The watchlist tracks 57 tickers across 19 sectors, updated once per trading day.
+    Each ticker is evaluated using RSI(14) and key moving averages (MA50, MA200) to
+    surface long-term entry awareness signals — not trade recommendations.
+  </p>
+  <p>
+    Data is fetched from Yahoo Finance's public API and cached in your browser's
+    localStorage. Repeat opens are instant. The market context bar at the top of
+    the page shows SPY, QQQ, IWM, and DIA as broad market benchmarks.
+  </p>
+</section>
+
+<!-- 2. SIGNALS -->
+<section class="guide-section">
+  <div class="sec-label"><span class="sec-num">02</span> Signal Definitions</div>
+  <p>Each ticker card displays one signal. Signals are assigned in priority order — the first matching rule wins.</p>
+  <div class="signal-grid">
+
+    <div class="signal-card">
+      <div class="signal-left">
+        <span class="signal-badge dc">⬇ DEEP DISCOUNT</span>
+      </div>
+      <div class="signal-right">
+        <div class="signal-cond">RSI &lt; 32</div>
+        <div class="signal-desc">Heavily oversold. Historically a potential accumulation zone — price has shed significant momentum and may be approaching a reversal area. Highest priority signal.</div>
+      </div>
+    </div>
+
+    <div class="signal-card">
+      <div class="signal-left">
+        <span class="signal-badge we">◎ WATCH ENTRY</span>
+      </div>
+      <div class="signal-right">
+        <div class="signal-cond">RSI 32–45 · within 8% of MA200</div>
+        <div class="signal-desc">Recovering from oversold while sitting near long-term support. Both conditions must be true: RSI in the recovery range and price close to the 200-day moving average.</div>
+      </div>
+    </div>
+
+    <div class="signal-card">
+      <div class="signal-left">
+        <span class="signal-badge ns">↓ NEAR SUPPORT</span>
+      </div>
+      <div class="signal-right">
+        <div class="signal-cond">Price within 3% below MA50 or MA200</div>
+        <div class="signal-desc">Approaching a key moving average from below. Often a decision point — price may bounce off support or break through it. Watch for volume confirmation.</div>
+      </div>
+    </div>
+
+    <div class="signal-card">
+      <div class="signal-left">
+        <span class="signal-badge ut">↑ UPTREND</span>
+      </div>
+      <div class="signal-right">
+        <div class="signal-cond">Price above MA50 &amp; MA200</div>
+        <div class="signal-desc">Confirmed uptrend — price is holding above both the 50-day and 200-day moving averages. No immediate entry urgency; useful for monitoring trend health.</div>
+      </div>
+    </div>
+
+    <div class="signal-card">
+      <div class="signal-left">
+        <span class="signal-badge ex">⚠ EXTENDED</span>
+      </div>
+      <div class="signal-right">
+        <div class="signal-cond">RSI &gt; 72 or far above MA200</div>
+        <div class="signal-desc">Overbought or significantly extended above long-term average. Elevated entry risk. Not a short signal — simply a caution flag for new positions.</div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- 3. TAGS -->
+<section class="guide-section">
+  <div class="sec-label"><span class="sec-num">03</span> Tag System</div>
+  <p>Small inline tags appear on each card and sector header, giving a quick read on momentum and structure.</p>
+  <div class="tag-rows">
+
+    <div class="tag-row">
+      <div class="tag-demo">
+        <span class="mkt-tag bull">RSI 38</span>
+        <span class="mkt-tag neut">RSI 55</span>
+        <span class="mkt-tag bear">RSI 74</span>
+      </div>
+      <div class="tag-explain"><strong style="color:var(--text)">RSI tag</strong> — 14-period Relative Strength Index. Green when below 40 (oversold territory), red when above 70 (overbought), amber in between.</div>
+    </div>
+
+    <div class="tag-row">
+      <div class="tag-demo">
+        <span class="mkt-tag bull">↑50</span>
+        <span class="mkt-tag bear">↓50</span>
+      </div>
+      <div class="tag-explain"><strong style="color:var(--text)">MA50 tag</strong> — Arrow shows whether price is currently above (↑, green) or below (↓, red) the 50-day simple moving average.</div>
+    </div>
+
+    <div class="tag-row">
+      <div class="tag-demo">
+        <span class="mkt-tag bull">↑200</span>
+        <span class="mkt-tag bear">↓200</span>
+      </div>
+      <div class="tag-explain"><strong style="color:var(--text)">MA200 tag</strong> — Same as MA50 but for the 200-day SMA. Indicates long-term trend alignment. Most significant MA level for position traders.</div>
+    </div>
+
+    <div class="tag-row">
+      <div class="tag-demo">
+        <span class="mkt-tag gold">↑ GOLDEN</span>
+        <span class="mkt-tag bear">↓ DEATH</span>
+      </div>
+      <div class="tag-explain"><strong style="color:var(--text)">Cross tag</strong> — <span style="color:var(--goldL)">GOLDEN</span> means MA50 is above MA200 (bullish trend structure). <span style="color:var(--red)">DEATH</span> means MA50 has crossed below MA200 (bearish trend structure). Shows broad trend direction for the ticker.</div>
+    </div>
+
+    <div class="tag-row">
+      <div class="tag-demo">
+        <span class="mkt-tag bull">1.4×</span>
+        <span class="mkt-tag neut">0.8×</span>
+      </div>
+      <div class="tag-explain"><strong style="color:var(--text)">Volume tag</strong> — Today's volume as a multiple of the 20-day average. Values above 1.2× indicate elevated participation; below 0.8× is quiet. Green when above average, muted otherwise.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- 4. SECTOR HEADERS -->
+<section class="guide-section">
+  <div class="sec-label"><span class="sec-num">04</span> Sector Headers &amp; ETF Benchmarks</div>
+  <p>
+    Each sector group header shows the closest benchmark ETF for that theme — for example,
+    <strong style="color:var(--goldL)">GDX</strong> for Gold Miners, <strong style="color:var(--goldL)">TAN</strong> for Solar,
+    <strong style="color:var(--goldL)">XLF</strong> for Financials.
+  </p>
+  <div class="info-block">
+    <div class="info-head">What the header shows</div>
+    <div class="info-body">
+      The ETF symbol, today's price change (e.g. <code>+0.8%</code>), and the same RSI / MA / Cross tags used on individual ticker cards — applied to the ETF itself. This gives you a quick read on the sector's own momentum before drilling into individual names.
+    </div>
+  </div>
+  <div class="info-block">
+    <div class="info-head">Why it matters</div>
+    <div class="info-body">
+      When the sector ETF is showing a <code>NEAR SUPPORT</code> or <code>DEEP DISCOUNT</code> signal at the same time as individual tickers — that's sector-level confluence. Tickers in a healthy-ETF sector with UPTREND signals are in a different risk context than the same signal in a sector with a DEATH cross.
+    </div>
+  </div>
+</section>
+
+<!-- 5. MARKET BAR -->
+<section class="guide-section">
+  <div class="sec-label"><span class="sec-num">05</span> Market Bar</div>
+  <p>
+    The four tiles at the top of the page — <strong style="color:var(--text)">SPY</strong>, <strong style="color:var(--text)">QQQ</strong>, <strong style="color:var(--text)">IWM</strong>, <strong style="color:var(--text)">DIA</strong> — provide broad market context. Each tile shows:
+  </p>
+  <div class="info-block">
+    <div class="info-body">
+      <strong style="color:var(--text)">Price &amp; daily change</strong> — green for up, red for down.<br><br>
+      <strong style="color:var(--text)">52-week range bar</strong> — a gold dot on a gradient track showing where current price sits within its annual range. Far left is near the 52W low; far right is near the 52W high.<br><br>
+      <strong style="color:var(--text)">RSI / MA / Cross tags</strong> — same tag system as individual tickers, applied to the index ETF.
+    </div>
+  </div>
+  <p style="font-size:12px;color:var(--textM)">
+    Use the market bar to judge overall market health. Entering individual positions while SPY and QQQ are showing EXTENDED signals and DEATH crosses is meaningfully different from entering when they're at support with bullish structure.
+  </p>
+</section>
+
+<!-- 6. VIEWS -->
+<section class="guide-section">
+  <div class="sec-label"><span class="sec-num">06</span> Tile vs Table View</div>
+  <div class="info-block">
+    <div class="info-head">⊞ Tiles (default)</div>
+    <div class="info-body">Card layout — one card per ticker with all data visible at a glance. Better for browsing and comparing individual names side by side.</div>
+  </div>
+  <div class="info-block">
+    <div class="info-head">≡ Table</div>
+    <div class="info-body">Compact row-per-ticker view. All sectors in one scrollable table. Click any sector header row to collapse or expand that group. Useful for quickly scanning all tickers without scrolling past cards.</div>
+  </div>
+</section>
+
+<!-- 7. FILTERS -->
+<section class="guide-section">
+  <div class="sec-label"><span class="sec-num">07</span> Filters</div>
+  <div class="info-block">
+    <div class="info-head">Signal filter</div>
+    <div class="info-body">Buttons below the legend — click any signal name to show only tickers matching that signal. Useful for quickly finding all DEEP DISCOUNT or WATCH ENTRY names across all sectors. Click again to clear.</div>
+  </div>
+  <div class="info-block">
+    <div class="info-head">Sector tabs</div>
+    <div class="info-body">Tabs at the top scroll left/right across all 19 sectors. Selecting a sector shows only that group. Activating a sector tab clears the signal filter, and vice versa — only one filter is active at a time.</div>
+  </div>
+</section>
+
+<!-- 8. 52-WEEK POSITION -->
+<section class="guide-section">
+  <div class="sec-label"><span class="sec-num">08</span> 52-Week Position</div>
+  <p>Each card shows where the current price sits within its 52-week high/low range. The range is divided into three buckets:</p>
+  <div class="range-demos">
+
+    <div class="range-demo">
+      <div class="range-label near-low">NEAR LOW</div>
+      <div class="range-bar-wrap">
+        <div class="range-bar-fill"></div>
+        <div class="range-dot" style="left:15%"></div>
+      </div>
+      <div class="range-desc">Bottom 25% of the 52W range. Potential value zone — price is near its annual floor.</div>
+    </div>
+
+    <div class="range-demo">
+      <div class="range-label mid">MID RANGE</div>
+      <div class="range-bar-wrap">
+        <div class="range-bar-fill"></div>
+        <div class="range-dot" style="left:50%"></div>
+      </div>
+      <div class="range-desc">Middle 25–75% of the 52W range. Neutral position relative to recent history.</div>
+    </div>
+
+    <div class="range-demo">
+      <div class="range-label near-high">NEAR HIGH</div>
+      <div class="range-bar-wrap">
+        <div class="range-bar-fill"></div>
+        <div class="range-dot" style="left:87%"></div>
+      </div>
+      <div class="range-desc">Top 25% of the 52W range. Extended relative to recent history — consider alongside signal.</div>
+    </div>
+
+  </div>
+</section>
+
+<!-- 9. DATA & CACHE -->
+<section class="guide-section">
+  <div class="sec-label"><span class="sec-num">09</span> Data &amp; Cache</div>
+  <div class="info-block">
+    <div class="info-head">Source</div>
+    <div class="info-body">Yahoo Finance public API. End-of-day data only — intraday prices are not available through this source.</div>
+  </div>
+  <div class="info-block">
+    <div class="info-head">Cache behavior</div>
+    <div class="info-body">Data is fetched once per calendar day and stored in browser localStorage. Subsequent opens within the same day use the cached copy — no network requests, instant load. The status bar shows the data date and whether it came from cache or a live fetch.</div>
+  </div>
+  <div class="info-block">
+    <div class="info-head">Force refresh</div>
+    <div class="info-body">
+      To clear the cache and fetch fresh data, open your browser's developer console and run:<br><br>
+      <code>localStorage.clear()</code><br><br>
+      Then reload the page. All data will be fetched again from Yahoo Finance.
+    </div>
+  </div>
+</section>
+
+<!-- 10. CSV EXPORT -->
+<section class="guide-section">
+  <div class="sec-label"><span class="sec-num">10</span> CSV Export</div>
+  <p>
+    Click the <strong style="color:var(--textD)">⬇ EXPORT CSV</strong> button in the controls bar to download all currently visible tickers as a comma-separated file. If a filter is active, only the filtered tickers are exported. Columns include symbol, name, price, daily change, RSI, MA50, MA200, signal, and 52W position.
+  </p>
+</section>
+
+<footer>
+  <div class="footer-note">
+    <a class="brand-link" href="index.html">← Back to Watchlist</a>
+    &nbsp;·&nbsp;
+    by <a class="brand-link" href="https://x.com/t2make" target="_blank" rel="noopener">@t2make</a>
+  </div>
+  <div class="footer-note" style="color:var(--textM);font-size:10px;font-family:var(--mono)">
+    Not financial advice. For research only.
+  </div>
+</footer>
+
+</div><!-- .wrap -->
+</body>
+</html>
