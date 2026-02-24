@@ -911,7 +911,8 @@ async function fetchTickerData(sym) {
     // completed session (skips today's in-progress bar that Yahoo appends)
     const rawTimestamps = result.timestamp ?? [];
     const rawCloses     = result.indicators?.quote?.[0]?.close ?? [];
-    const todayStartSec = Math.floor(new Date().setHours(0, 0, 0, 0) / 1000);
+    const _now = new Date();
+    const todayStartSec = Date.UTC(_now.getUTCFullYear(), _now.getUTCMonth(), _now.getUTCDate()) / 1000;
     let prev = null;
     for (let i = rawTimestamps.length - 1; i >= 0; i--) {
       if (rawTimestamps[i] < todayStartSec && rawCloses[i] != null) { prev = rawCloses[i]; break; }
