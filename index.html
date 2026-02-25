@@ -907,8 +907,12 @@ async function fetchTickerData(sym) {
       ? vols.slice(-20).reduce((a,b) => a+b, 0) / Math.min(20, vols.length)
       : null;
 
-    // closes[-1] = current session bar (live or today's close); closes[-2] = previous session close
-    const prev = closes.length >= 2 ? closes[closes.length - 2] : null;
+    // Use Yahoo's explicit previousClose from meta — accurate pre/during/after session.
+    // closes[-2] is unreliable: during pre-market Yahoo omits today's bar so closes[-1]
+    // becomes yesterday's close and closes[-2] is two sessions back, not one.
+    const prev = meta.regularMarketPreviousClose
+              ?? meta.chartPreviousClose
+              ?? (closes.length >= 2 ? closes[closes.length - 2] : null);
     const price = meta.regularMarketPrice;
 
     return {
