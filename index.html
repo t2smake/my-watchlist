@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Active Sector Watchlist · @t2make</title>
-<meta name="description" content="57 tickers across 19 sectors. Live RSI(14) + MA signals for long-term entry awareness.">
+<meta name="description" content="57 tickers across 19 sectors. RSI + MA signals, momentum, breakout detection, and relative strength.">
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -119,6 +119,10 @@ h1 em{font-style:italic;color:var(--goldL)}
 .filter-btn.f-ns{color:#3b82f6;border-color:rgba(59,130,246,.5);background:rgba(59,130,246,.1)}
 .filter-btn.f-ut{color:#8a95b0;border-color:rgba(138,149,176,.4);background:rgba(138,149,176,.07)}
 .filter-btn.f-ex{color:#e05252;border-color:rgba(224,82,82,.5);background:rgba(224,82,82,.1)}
+.filter-btn.f-bo{color:#ff9f1c;border-color:rgba(255,159,28,.5);background:rgba(255,159,28,.1)}
+.filter-btn.f-mo{color:#06d6a0;border-color:rgba(6,214,160,.5);background:rgba(6,214,160,.1)}
+.filter-btn.f-pb{color:#118ab2;border-color:rgba(17,138,178,.5);background:rgba(17,138,178,.1)}
+.filter-btn.f-sq{color:#9b5de5;border-color:rgba(155,93,229,.5);background:rgba(155,93,229,.1)}
 .csv-btn{font-family:var(--mono);font-size:9px;letter-spacing:.1em;
   padding:5px 12px;border:1px solid var(--borderL);background:none;color:var(--textD);
   cursor:pointer;margin-left:auto;transition:all .15s}
@@ -179,6 +183,10 @@ h1 em{font-style:italic;color:var(--goldL)}
 .signal.ut{color:#8a95b0;border-color:rgba(138,149,176,.3);background:rgba(138,149,176,.05)}
 .signal.ex{color:#e05252;border-color:rgba(224,82,82,.4);background:rgba(224,82,82,.08)}
 .signal.nd{color:var(--textM);border-color:var(--border)}
+.signal.bo{color:#ff9f1c;border-color:rgba(255,159,28,.4);background:rgba(255,159,28,.08)}
+.signal.mo{color:#06d6a0;border-color:rgba(6,214,160,.4);background:rgba(6,214,160,.08)}
+.signal.pb{color:#118ab2;border-color:rgba(17,138,178,.4);background:rgba(17,138,178,.08)}
+.signal.sq{color:#9b5de5;border-color:rgba(155,93,229,.4);background:rgba(155,93,229,.08)}
 
 /* ── CARD TAGS ───────────────────────────────────────────────────────────── */
 .card-tags{display:flex;gap:5px;align-items:center;flex-wrap:wrap;margin-top:8px}
@@ -195,6 +203,25 @@ h1 em{font-style:italic;color:var(--goldL)}
 .wk-bucket.near-low{color:var(--green)}
 .wk-bucket.near-high{color:var(--red)}
 .wk-bucket.mid{color:var(--textM);opacity:.6}
+
+/* ── SWING GRID ────────────────────────────────────────────────────────── */
+.swing-grid{display:grid;grid-template-columns:1fr 1fr;gap:3px 10px;margin-top:8px;padding-top:8px;
+  border-top:1px solid var(--border)}
+.swing-grid .di{display:flex;flex-direction:column;gap:1px}
+.swing-grid .dl{font-family:var(--mono);font-size:calc(9px * var(--scale));letter-spacing:.08em;color:var(--textM);text-transform:uppercase}
+.swing-grid .dv{font-family:var(--mono);font-size:calc(11px * var(--scale));color:var(--textD)}
+.sqz-flag{font-size:calc(8px * var(--scale));padding:1px 4px;border:1px solid rgba(155,93,229,.4);color:#9b5de5;background:rgba(155,93,229,.06);margin-left:4px}
+
+/* ── LEGEND SWING ──────────────────────────────────────────────────────── */
+.lb.bo{color:#ff9f1c;border-color:rgba(255,159,28,.4);background:rgba(255,159,28,.08)}
+.lb.mo{color:#06d6a0;border-color:rgba(6,214,160,.4);background:rgba(6,214,160,.08)}
+.lb.pb{color:#118ab2;border-color:rgba(17,138,178,.4);background:rgba(17,138,178,.08)}
+.lb.sq{color:#9b5de5;border-color:rgba(155,93,229,.4);background:rgba(155,93,229,.08)}
+
+/* ── SORTABLE TABLE ────────────────────────────────────────────────────── */
+.tbl-view thead th.sortable{cursor:pointer;user-select:none;transition:color .15s}
+.tbl-view thead th.sortable:hover{color:var(--goldL)}
+.sort-arrow{margin-left:3px;font-size:8px;opacity:.6}
 
 /* ── SKELETON ───────────────────────────────────────────────────────────── */
 .sk{background:linear-gradient(90deg,var(--surface2) 25%,var(--borderL) 50%,var(--surface2) 75%);
@@ -297,7 +324,7 @@ footer{margin-top:64px;padding:32px 0;border-top:1px solid var(--border);
     <span class="eyebrow-brand"><a class="brand-link" href="https://x.com/t2make" target="_blank" rel="noopener">@t2make</a></span>
   </div>
   <h1>Sector <em>Watchlist</em></h1>
-  <p class="sub" id="sub-desc">57 tickers across 19 sectors. Live fundamentals + RSI(14) + MA technical signals for long-term entry awareness. Fetched once daily and cached locally — instant on repeat opens.</p>
+  <p class="sub" id="sub-desc">57 tickers across 19 sectors. RSI + MA signals, momentum (ROC/MACD), breakout detection, and relative strength. Fetched once daily and cached locally.</p>
   <div class="status-bar">
     <div class="dot" id="dot"></div>
     <span id="status-text">Initialising…</span>
@@ -327,11 +354,15 @@ footer{margin-top:64px;padding:32px 0;border-top:1px solid var(--border);
   <span class="lb ns">↓ NEAR SUPPORT · within 5% of key MA</span>
   <span class="lb ut">↑ UPTREND · above MA50 &amp; MA200</span>
   <span class="lb ex">⚠ EXTENDED · RSI &gt; 72 or far above MA200</span>
+  <span class="lb bo">🔥 BREAKOUT · near 52W high + vol spike</span>
+  <span class="lb mo">⚡ MOMENTUM · ROC(20) &gt; 10% + RSI 50–70</span>
+  <span class="lb pb">↩ PULLBACK · above MA200 + near EMA21</span>
+  <span class="lb sq">🔸 SQUEEZE · ATR(14) &lt; 70% ATR(50)</span>
 </div>
 
 <div class="controls-bar" id="controls-bar"></div>
 
-<div class="sec-label" id="sec-label">19 Sectors · 57 Tickers · RSI(14) + MA50/200 + Fundamentals</div>
+<div class="sec-label" id="sec-label">19 Sectors · 57 Tickers · RSI + MA + Momentum + Breakout</div>
 <div class="sectors-grid" id="sectors-grid"></div>
 <div id="table-view" style="display:none"></div>
 <div class="no-results" id="no-results" style="display:none">No tickers match the current filter.&nbsp;<button class="clear-hint-btn" id="clear-filter-hint">Clear filter</button></div>
@@ -399,7 +430,7 @@ const SECTORS = [
 
 // ── UTILS ─────────────────────────────────────────────────────────────────
 const todayStr = () => new Date().toISOString().slice(0,10);
-const CACHE_KEY = `wl_v7_${todayStr()}`;
+const CACHE_KEY = `wl_v8_${todayStr()}`;
 
 const fmtP   = n => n==null?'—': n>=1000?`$${n.toLocaleString('en-US',{maximumFractionDigits:0})}`:`$${n.toFixed(2)}`;
 const fmtPct = n => n==null?'—':`${n>=0?'+':''}${n.toFixed(2)}%`;
@@ -430,12 +461,78 @@ function calcRSI(closes, period=14) {
   return 100-(100/(1+ag/al));
 }
 
-function getSignal(price, ma50, ma200, rsi) {
+function calcEMA(closes, period) {
+  if (!closes || closes.length < period) return null;
+  const k = 2 / (period + 1);
+  let ema = closes.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  for (let i = period; i < closes.length; i++) ema = closes[i] * k + ema * (1 - k);
+  return ema;
+}
+
+function calcEMAseries(closes, period) {
+  if (!closes || closes.length < period) return [];
+  const k = 2 / (period + 1);
+  const out = [];
+  let ema = closes.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  out.push(ema);
+  for (let i = period; i < closes.length; i++) {
+    ema = closes[i] * k + ema * (1 - k);
+    out.push(ema);
+  }
+  return out;
+}
+
+function calcROC(closes, period) {
+  if (!closes || closes.length < period + 1) return null;
+  const prev = closes[closes.length - 1 - period];
+  const curr = closes[closes.length - 1];
+  return prev ? (curr - prev) / prev * 100 : null;
+}
+
+function calcATR(highs, lows, closes, period) {
+  if (!highs || highs.length < period + 1) return null;
+  const trs = [];
+  for (let i = 1; i < highs.length; i++) {
+    const tr = Math.max(highs[i] - lows[i], Math.abs(highs[i] - closes[i - 1]), Math.abs(lows[i] - closes[i - 1]));
+    trs.push(tr);
+  }
+  if (trs.length < period) return null;
+  let atr = trs.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  for (let i = period; i < trs.length; i++) atr = (atr * (period - 1) + trs[i]) / period;
+  return atr;
+}
+
+function calcMACD(closes) {
+  if (!closes || closes.length < 35) return null;
+  const ema12 = calcEMAseries(closes, 12);
+  const ema26 = calcEMAseries(closes, 26);
+  // align: ema12 starts at index 12, ema26 at index 26, so macd line starts at offset
+  const offset = 26 - 12; // ema12 has 'offset' more entries
+  const macdLine = [];
+  for (let i = 0; i < ema26.length; i++) macdLine.push(ema12[i + offset] - ema26[i]);
+  if (macdLine.length < 9) return null;
+  const k = 2 / 10;
+  let sig = macdLine.slice(0, 9).reduce((a, b) => a + b, 0) / 9;
+  for (let i = 9; i < macdLine.length; i++) sig = macdLine[i] * k + sig * (1 - k);
+  const last = macdLine[macdLine.length - 1];
+  return { macd: last, signal: sig, histogram: last - sig };
+}
+
+function getSignal(price, ma50, ma200, rsi, q) {
   if (!price) return {cls:'nd', label:'— NO DATA'};
   const p200 = ma200 ? (price-ma200)/ma200*100 : null;
   const p50  = ma50  ? (price-ma50)/ma50*100   : null;
   if (rsi!==null && rsi<32)                                    return {cls:'dc',label:'⬇ DEEP DISCOUNT'};
   if (rsi!==null && rsi<45 && p200!==null && Math.abs(p200)<8) return {cls:'we',label:'◎ WATCH ENTRY'};
+  // New swing signals
+  if (q) {
+    const pct52H = q.pctFrom52wHigh;
+    const volR   = (q.regularMarketVolume && q.volumeAvg20) ? q.regularMarketVolume / q.volumeAvg20 : 0;
+    if (pct52H!=null && pct52H > -3 && volR > 1.5)                                              return {cls:'bo',label:'🔥 BREAKOUT'};
+    if (q.roc20!=null && q.roc20 > 10 && rsi!==null && rsi>=50 && rsi<=70 && p50!==null && p50>0) return {cls:'mo',label:'⚡ MOMENTUM'};
+    if (p200!==null && p200>0 && rsi!==null && rsi>=40 && rsi<=55 && q.ema21!=null && price && Math.abs((price-q.ema21)/q.ema21*100)<=3) return {cls:'pb',label:'↩ PULLBACK'};
+    if (q.atrSqueeze && p200!==null && p200>0)                                                    return {cls:'sq',label:'🔸 SQUEEZE'};
+  }
   if ((p50!==null&&p50<-3)||(p200!==null&&p200<-3))           return {cls:'ns',label:'↓ NEAR SUPPORT'};
   if (rsi!==null && rsi>72)                                    return {cls:'ex',label:'⚠ EXTENDED'};
   if (p50!==null&&p50>0&&p200!==null&&p200>0)                  return {cls:'ut',label:'↑ UPTREND'};
@@ -508,14 +605,17 @@ async function fetchMarketBar(cachedMarket) {
     MKT_SYMS.forEach((s, i) => { market[s] = results[i]; });
   }
   bar.innerHTML = MKT_SYMS.map(sym => renderMktTile(sym, market[sym])).join('');
+  // Capture SPY 1-month change for RS calculation
+  if (market.SPY?.q?.chg1m != null) spyChg1m = market.SPY.q.chg1m;
   return market;
 }
 
 // ── STATE ─────────────────────────────────────────────────────────────────
 const state = { sector:'ALL', signal:'ALL', view:'tiles' };
 const collapsedSectors = new Set(); // tracks which sector indices are collapsed
-const cardDataCache = {}; // sym -> { signal, chg, rsi, p200 }
+const cardDataCache = {}; // sym -> { signal, chg, rsi, p200, roc10, roc20, pct52H, atr14, atrSqueeze, chg1w, chg1m, macd, rs }
 let quotesCache = {};     // sym -> full Yahoo quote object
+let spyChg1m = null;      // SPY 1-month change for RS calculation
 
 // ── TEXT SIZE ─────────────────────────────────────────────────────────────
 function setTextScale(val) {
@@ -580,6 +680,10 @@ function buildControls() {
       <button class="filter-btn" data-sig="ns">↓ NEAR SUPPORT</button>
       <button class="filter-btn" data-sig="ut">↑ UPTREND</button>
       <button class="filter-btn" data-sig="ex">⚠ EXTENDED</button>
+      <button class="filter-btn" data-sig="bo">🔥 BREAKOUT</button>
+      <button class="filter-btn" data-sig="mo">⚡ MOMENTUM</button>
+      <button class="filter-btn" data-sig="pb">↩ PULLBACK</button>
+      <button class="filter-btn" data-sig="sq">🔸 SQUEEZE</button>
     </div>
     <div class="view-btns">
       <button class="view-btn v-active" data-view="tiles" title="Tile view">⊞</button>
@@ -613,11 +717,12 @@ function buildControls() {
 // ── FILTER COUNT BADGES ───────────────────────────────────────────────────
 const BTN_LABELS = {
   ALL:'ALL SIGNALS', dc:'⬇ DEEP DISCOUNT', we:'◎ WATCH ENTRY',
-  ns:'↓ NEAR SUPPORT', ut:'↑ UPTREND', ex:'⚠ EXTENDED'
+  ns:'↓ NEAR SUPPORT', ut:'↑ UPTREND', ex:'⚠ EXTENDED',
+  bo:'🔥 BREAKOUT', mo:'⚡ MOMENTUM', pb:'↩ PULLBACK', sq:'🔸 SQUEEZE'
 };
 
 function updateFilterCounts() {
-  const counts = { dc:0, we:0, ns:0, ut:0, ex:0 };
+  const counts = { dc:0, we:0, ns:0, ut:0, ex:0, bo:0, mo:0, pb:0, sq:0 };
   let total = 0;
   Object.values(cardDataCache).forEach(d => {
     if (d.signal && d.signal !== 'nd') {
@@ -689,12 +794,14 @@ function applyFilters() {
 // ── CSV EXPORT ────────────────────────────────────────────────────────────
 const SIG_LABELS = {
   dc:'DEEP DISCOUNT', we:'WATCH ENTRY', ns:'NEAR SUPPORT',
-  ut:'UPTREND', ex:'EXTENDED', nd:'NO DATA'
+  ut:'UPTREND', ex:'EXTENDED', nd:'NO DATA',
+  bo:'BREAKOUT', mo:'MOMENTUM', pb:'PULLBACK', sq:'SQUEEZE'
 };
 
 function exportCSV() {
   const rows = [['Symbol','Name','Sector','Price','Change%','MarketCap','TrailPE','FwdPE',
-                 'Volume','vsMA50%','vsMA200%','RSI','Signal']];
+                 'Volume','vsMA50%','vsMA200%','RSI','Signal',
+                 '1W%','1M%','ROC10','ROC20','%from52WH','ATR14','ATRSqueeze','MACD Hist','RS vs SPY']];
 
   SECTORS.forEach(sec => {
     const block = [...document.querySelectorAll('.sector-block')]
@@ -723,7 +830,16 @@ function exportCSV() {
         q.regularMarketVolume || '',
         p50, p200,
         d.rsi!=null ? d.rsi.toFixed(1) : '',
-        SIG_LABELS[d.signal] || ''
+        SIG_LABELS[d.signal] || '',
+        d.chg1w!=null ? d.chg1w.toFixed(2) : '',
+        d.chg1m!=null ? d.chg1m.toFixed(2) : '',
+        d.roc10!=null ? d.roc10.toFixed(2) : '',
+        d.roc20!=null ? d.roc20.toFixed(2) : '',
+        d.pct52H!=null ? d.pct52H.toFixed(2) : '',
+        d.atr14!=null ? d.atr14.toFixed(2) : '',
+        d.atrSqueeze ? 'YES' : 'NO',
+        d.macd?.histogram!=null ? d.macd.histogram.toFixed(2) : '',
+        d.rs!=null ? d.rs.toFixed(2) : ''
       ]);
     });
   });
@@ -791,11 +907,25 @@ function populateCard(ticker, q, rsi) {
   const wkPct = (wkH&&wkL&&price) ? Math.min(Math.max((price-wkL)/(wkH-wkL)*100,0),100) : null;
   const p50   = (ma50 &&price) ? (price-ma50) /ma50 *100 : null;
   const p200  = (ma200&&price) ? (price-ma200)/ma200*100 : null;
-  const sig   = getSignal(price, ma50, ma200, rsi);
+  const sig   = getSignal(price, ma50, ma200, rsi, q);
+
+  // Swing metrics
+  const roc10  = q?.roc10 ?? null;
+  const roc20  = q?.roc20 ?? null;
+  const pct52H = q?.pctFrom52wHigh ?? null;
+  const atr14v = q?.atr14 ?? null;
+  const sqz    = q?.atrSqueeze ?? false;
+  const chg1w  = q?.chg1w ?? null;
+  const chg1m  = q?.chg1m ?? null;
+  const macdData = q?.macd ?? null;
+  const rs     = (chg1m !== null && spyChg1m !== null) ? chg1m - spyChg1m : null;
 
   // Cache for filter + CSV export
   const chgAbs = q?.regularMarketChange ?? null;
-  cardDataCache[ticker.sym] = { signal: sig.cls, chg: chgP??null, chgAbs: chgAbs, rsi: rsi, p200: p200??null };
+  cardDataCache[ticker.sym] = {
+    signal: sig.cls, chg: chgP??null, chgAbs, rsi, p200: p200??null,
+    roc10, roc20, pct52H, atr14: atr14v, atrSqueeze: sqz, chg1w, chg1m, macd: macdData, rs
+  };
 
   const rsiCls   = rsi !== null ? (rsi < 40 ? 'bull' : rsi > 70 ? 'bear' : 'neut') : null;
   const rsiTag   = rsi !== null
@@ -857,6 +987,16 @@ function populateCard(ticker, q, rsi) {
       </div>
     </div>
     ${tagsBlock}
+    <div class="swing-grid">
+      <div class="di"><div class="dl">ROC(10)</div><div class="dv ${roc10==null?'':roc10>0?'bull':'bear'}">${roc10!=null?fmtPct(roc10):'—'}</div></div>
+      <div class="di"><div class="dl">ROC(20)</div><div class="dv ${roc20==null?'':roc20>0?'bull':'bear'}">${roc20!=null?fmtPct(roc20):'—'}</div></div>
+      <div class="di"><div class="dl">52W High</div><div class="dv ${pct52H==null?'':pct52H>-5?'bull':'bear'}">${pct52H!=null?pct52H.toFixed(1)+'%':'—'}</div></div>
+      <div class="di"><div class="dl">ATR(14)</div><div class="dv">${atr14v!=null?atr14v.toFixed(2):'—'}${sqz?'<span class="sqz-flag">SQZ</span>':''}</div></div>
+      <div class="di"><div class="dl">1W Chg</div><div class="dv ${chg1w==null?'':chg1w>0?'bull':'bear'}">${chg1w!=null?fmtPct(chg1w):'—'}</div></div>
+      <div class="di"><div class="dl">1M Chg</div><div class="dv ${chg1m==null?'':chg1m>0?'bull':'bear'}">${chg1m!=null?fmtPct(chg1m):'—'}</div></div>
+      <div class="di"><div class="dl">RS vs SPY</div><div class="dv ${rs==null?'':rs>0?'bull':'bear'}">${rs!=null?(rs>0?'+':'')+rs.toFixed(1)+'%':'—'}</div></div>
+      <div class="di"><div class="dl">MACD Hist</div><div class="dv ${!macdData?'':macdData.histogram>0?'bull':'bear'}">${macdData?macdData.histogram.toFixed(2):'—'}</div></div>
+    </div>
     ${wkBlock}
     <div class="signal ${sig.cls}">${sig.label}</div>
     ${ticker.watchNote?'<div class="watch-note">WATCH LIST — ANALYSE</div>':''}`;
@@ -895,25 +1035,49 @@ async function fetchTickerData(sym) {
     if (!result) continue;
 
     const meta   = result.meta;
-    const closes = result.indicators?.quote?.[0]?.close?.filter(v => v != null) ?? [];
+    const rawQ   = result.indicators?.quote?.[0] ?? {};
+    const rawCloses = rawQ.close ?? [];
+    const rawHighs  = rawQ.high  ?? [];
+    const rawLows   = rawQ.low   ?? [];
+    const rawOpens  = rawQ.open  ?? [];
+    const rawVols   = rawQ.volume ?? [];
+
+    // Build aligned arrays skipping bars with any null
+    const closes = [], highs = [], lows = [], opens = [], vols = [];
+    for (let i = 0; i < rawCloses.length; i++) {
+      if (rawCloses[i] != null && rawHighs[i] != null && rawLows[i] != null) {
+        closes.push(rawCloses[i]); highs.push(rawHighs[i]); lows.push(rawLows[i]);
+        opens.push(rawOpens[i] ?? rawCloses[i]); vols.push(rawVols[i] ?? 0);
+      }
+    }
     if (!meta?.regularMarketPrice || closes.length < 15) continue;
 
     const sma = n => closes.length >= n
       ? closes.slice(-n).reduce((a, b) => a + b, 0) / n
       : null;
 
-    const vols = result.indicators?.quote?.[0]?.volume?.filter(v => v != null) ?? [];
     const volumeAvg20 = vols.length > 0
       ? vols.slice(-20).reduce((a,b) => a+b, 0) / Math.min(20, vols.length)
       : null;
 
     // Use Yahoo's explicit previousClose from meta — accurate pre/during/after session.
-    // closes[-2] is unreliable: during pre-market Yahoo omits today's bar so closes[-1]
-    // becomes yesterday's close and closes[-2] is two sessions back, not one.
     const prev = meta.regularMarketPreviousClose
               ?? meta.chartPreviousClose
               ?? (closes.length >= 2 ? closes[closes.length - 2] : null);
     const price = meta.regularMarketPrice;
+
+    // New swing indicators
+    const roc10 = calcROC(closes, 10);
+    const roc20 = calcROC(closes, 20);
+    const ema21 = calcEMA(closes, 21);
+    const atr14 = calcATR(highs, lows, closes, 14);
+    const atr50 = calcATR(highs, lows, closes, 50);
+    const atrSqueeze = (atr14 && atr50) ? atr14 < atr50 * 0.7 : false;
+    const wkH = meta.fiftyTwoWeekHigh ?? null;
+    const pctFrom52wHigh = (wkH && price) ? (price - wkH) / wkH * 100 : null;
+    const chg1w = closes.length >= 5  ? (closes[closes.length-1] - closes[closes.length-5])  / closes[closes.length-5]  * 100 : null;
+    const chg1m = closes.length >= 21 ? (closes[closes.length-1] - closes[closes.length-21]) / closes[closes.length-21] * 100 : null;
+    const macd  = calcMACD(closes);
 
     return {
       q: {
@@ -922,13 +1086,15 @@ async function fetchTickerData(sym) {
         regularMarketChangePercent: prev ? (price - prev) / prev * 100 : null,
         regularMarketVolume:        meta.regularMarketVolume ?? null,
         volumeAvg20,
-        fiftyTwoWeekHigh:           meta.fiftyTwoWeekHigh   ?? null,
+        fiftyTwoWeekHigh:           wkH,
         fiftyTwoWeekLow:            meta.fiftyTwoWeekLow    ?? null,
         fiftyDayAverage:            sma(50),
         twoHundredDayAverage:       sma(200),
-        marketCap:  null,  // not available from chart endpoint
+        marketCap:  null,
         trailingPE: null,
         forwardPE:  null,
+        // swing fields
+        roc10, roc20, ema21, atr14, atrSqueeze, pctFrom52wHigh, chg1w, chg1m, macd,
       },
       rsi: calcRSI(closes),
     };
@@ -936,7 +1102,7 @@ async function fetchTickerData(sym) {
   return { q: null, rsi: null };
 }
 
-async function batchFetchAll(allTickers, size = 5) {
+async function batchFetchAll(allTickers, size = 8) {
   const quotes = {}, rsiMap = {};
   let loadedCount = 0;
   for (let i = 0; i < allTickers.length; i += size) {
@@ -961,9 +1127,9 @@ function updateStaticCounts() {
   const nSec = SECTORS.length;
   const nTick = SECTORS.flatMap(s => s.tickers).length;
   const sub = document.getElementById('sub-desc');
-  if (sub) sub.textContent = `${nTick} tickers across ${nSec} sectors. Live fundamentals + RSI(14) + MA technical signals for long-term entry awareness. Fetched once daily and cached locally — instant on repeat opens.`;
+  if (sub) sub.textContent = `${nTick} tickers across ${nSec} sectors. RSI + MA signals, momentum (ROC/MACD), breakout detection, and relative strength. Fetched once daily and cached locally.`;
   const lbl = document.getElementById('sec-label');
-  if (lbl) lbl.textContent = `${nSec} Sectors · ${nTick} Tickers · RSI(14) + MA50/200 + Fundamentals`;
+  if (lbl) lbl.textContent = `${nSec} Sectors · ${nTick} Tickers · RSI + MA + Momentum + Breakout`;
   const pillSec  = document.querySelector('.pill:first-child');
   const pillTick = document.querySelector('.pill:nth-child(2)');
   if (pillSec)  pillSec.textContent  = `${nSec} SECTORS`;
@@ -1011,75 +1177,95 @@ function updateSectorHeaders(sectorETFs) {
 }
 
 // ── RENDER TABLE ──────────────────────────────────────────────────────────
+let tableSortCol = null;
+let tableSortAsc = true;
+
 function renderTable() {
   const wrap = document.getElementById('table-view');
   if (!wrap) return;
 
-  const rows = SECTORS.map((sec, si) => {
-    const rsiEl = document.getElementById(`srsi-${si}`);
-    const rsiTag = rsiEl?.textContent ? rsiEl.outerHTML : '';
-    const headerRow = `<tr class="tbl-sec-row${collapsedSectors.has(si)?' sec-collapsed':''}" data-si="${si}">
-      <td colspan="7"><span class="tbl-chevron">▼</span>${sec.icon} ${sec.title}
-        ${rsiTag}<span class="tbl-sec-count">${sec.tickers.length} tickers</span></td>
-    </tr>`;
+  // Collect all ticker rows for sorting
+  const allRows = [];
+  SECTORS.forEach((sec, si) => {
+    sec.tickers.forEach(t => {
+      allRows.push({ ticker: t, si, sec });
+    });
+  });
 
-    const tickerRows = sec.tickers.map(t => {
-      const q    = quotesCache[t.sym];
-      const d    = cardDataCache[t.sym] || {};
-      const rsi  = d.rsi;
-      const price = q?.regularMarketPrice;
-      const chgP  = d.chg;
-      const chgAbs = d.chgAbs ?? null;
-      const ma50v  = q?.fiftyDayAverage;
-      const ma200v = q?.twoHundredDayAverage;
-      const p50   = (ma50v  && price) ? (price - ma50v)  / ma50v  * 100 : null;
-      const p200  = (ma200v && price) ? (price - ma200v) / ma200v * 100 : null;
-      const wkH = q?.fiftyTwoWeekHigh, wkL = q?.fiftyTwoWeekLow;
-      const wkPct = (wkH && wkL && price) ? Math.round((price - wkL) / (wkH - wkL) * 100) : null;
-      const wkBucket    = wkPct == null ? '' : wkPct <= 25 ? 'NEAR LOW' : wkPct >= 75 ? 'NEAR HIGH' : 'MID';
-      const wkBucketCls = wkPct == null ? '' : wkPct <= 25 ? 'near-low' : wkPct >= 75 ? 'near-high' : 'mid';
-      const volRatio = (q?.volumeAvg20 && q?.regularMarketVolume) ? q.regularMarketVolume / q.volumeAvg20 : null;
+  // Sort if a column is selected
+  if (tableSortCol) {
+    const getter = (row) => {
+      const d = cardDataCache[row.ticker.sym] || {};
+      const q = quotesCache[row.ticker.sym];
+      switch(tableSortCol) {
+        case 'sym': return row.ticker.sym;
+        case 'price': return q?.regularMarketPrice ?? -Infinity;
+        case 'chg': return d.chg ?? -Infinity;
+        case '1w': return d.chg1w ?? -Infinity;
+        case '1m': return d.chg1m ?? -Infinity;
+        case 'roc20': return d.roc20 ?? -Infinity;
+        case '52w': {
+          const wkH = q?.fiftyTwoWeekHigh, wkL = q?.fiftyTwoWeekLow, p = q?.regularMarketPrice;
+          return (wkH && wkL && p) ? (p - wkL)/(wkH - wkL)*100 : -Infinity;
+        }
+        case 'rs': return d.rs ?? -Infinity;
+        case 'rsi': return d.rsi ?? -Infinity;
+        default: return 0;
+      }
+    };
+    allRows.sort((a, b) => {
+      const va = getter(a), vb = getter(b);
+      if (typeof va === 'string') return tableSortAsc ? va.localeCompare(vb) : vb.localeCompare(va);
+      return tableSortAsc ? va - vb : vb - va;
+    });
+  }
 
-      const rsiCls   = rsi != null ? (rsi < 40 ? 'bull' : rsi > 70 ? 'bear' : 'neut') : null;
-      const rsiTag   = rsi != null ? `<span class="mkt-tag ${rsiCls}">RSI ${rsi.toFixed(1)}</span>` : '';
-      const ma50tag  = p50  != null ? `<span class="mkt-tag ${p50  > 0 ? 'bull':'bear'}">${p50  > 0 ? '↑':'↓'}50</span>`  : '';
-      const ma200tag = p200 != null ? `<span class="mkt-tag ${p200 > 0 ? 'bull':'bear'}">${p200 > 0 ? '↑':'↓'}200</span>` : '';
-      const crossBull = (ma50v && ma200v) ? ma50v > ma200v : null;
-      const crossTag  = crossBull !== null
-        ? `<span class="mkt-tag ${crossBull ? 'bull':'bear'}">${crossBull ? '↑ GOLDEN':'↓ DEATH'}</span>` : '';
-      const volTag = volRatio != null
-        ? `<span class="mkt-tag ${volRatio > 1.3 ? 'bull' : volRatio < 0.7 ? 'neut' : ''}">${volRatio.toFixed(1)}×</span>` : '';
+  const arrow = (col) => tableSortCol === col ? `<span class="sort-arrow">${tableSortAsc ? '▲' : '▼'}</span>` : '';
 
-      const sigMap = {dc:'⬇ DC', we:'◎ WE', ns:'↔ MX', ut:'↑ UT', ex:'⚠ EX', nd:'—'};
-      const sig = d.signal ? (sigMap[d.signal] || d.signal) : '—';
-      const chgCls = (chgP ?? 0) >= 0 ? 'up' : 'dn';
-      const rowCls = `tbl-row${collapsedSectors.has(si) ? ' sec-collapsed' : ''}`;
-
-      return `<tr class="${rowCls}" data-si="${si}" data-sym="${t.sym}">
-        <td class="tbl-sym">${t.sym}</td>
-        <td class="tbl-name">${t.name}</td>
-        <td class="tbl-price">${price != null ? fmtP(price) : '—'}</td>
-        <td class="tbl-chg ${chgCls}">${
-  chgAbs != null && chgP != null
-    ? `${chgAbs >= 0 ? '+' : ''}${chgAbs.toFixed(2)} (${chgP >= 0 ? '+' : ''}${chgP.toFixed(2)}%)`
-    : chgP  != null ? `${chgP >= 0 ? '+' : ''}${chgP.toFixed(2)}%` : '—'
-}</td>
-        <td><div class="tbl-tags">${rsiTag}${ma50tag}${ma200tag}${crossTag}${volTag}</div></td>
-        <td class="tbl-52w"><span class="wk-bucket ${wkBucketCls}">${wkPct != null ? wkPct + '%' : ''}</span> <span style="opacity:.5;font-size:calc(9px * var(--scale))">${wkBucket}</span></td>
-        <td class="tbl-sig"><span class="signal ${d.signal || 'nd'}">${sig}</span></td>
+  // Build rows — if sorted, flat list; if not sorted, grouped by sector
+  let bodyHTML = '';
+  if (tableSortCol) {
+    bodyHTML = allRows.map(row => buildTickerRow(row.ticker, row.si)).join('');
+  } else {
+    bodyHTML = SECTORS.map((sec, si) => {
+      const rsiEl = document.getElementById(`srsi-${si}`);
+      const rsiTag = rsiEl?.textContent ? rsiEl.outerHTML : '';
+      const headerRow = `<tr class="tbl-sec-row${collapsedSectors.has(si)?' sec-collapsed':''}" data-si="${si}">
+        <td colspan="12"><span class="tbl-chevron">▼</span>${sec.icon} ${sec.title}
+          ${rsiTag}<span class="tbl-sec-count">${sec.tickers.length} tickers</span></td>
       </tr>`;
+      return headerRow + sec.tickers.map(t => buildTickerRow(t, si)).join('');
     }).join('');
-
-    return headerRow + tickerRows;
-  }).join('');
+  }
 
   wrap.innerHTML = `<table class="tbl-view">
     <thead><tr>
-      <th>SYM</th><th>NAME</th><th>PRICE</th><th>CHANGE</th>
-      <th>RSI · MA · CROSS · VOL</th><th>52W</th><th>SIGNAL</th>
+      <th class="sortable" data-col="sym">SYM${arrow('sym')}</th>
+      <th>NAME</th>
+      <th class="sortable" data-col="price">PRICE${arrow('price')}</th>
+      <th class="sortable" data-col="chg">CHG%${arrow('chg')}</th>
+      <th class="sortable" data-col="1w">1W%${arrow('1w')}</th>
+      <th class="sortable" data-col="1m">1M%${arrow('1m')}</th>
+      <th class="sortable" data-col="roc20">ROC20${arrow('roc20')}</th>
+      <th class="sortable" data-col="52w">52W%${arrow('52w')}</th>
+      <th class="sortable" data-col="rs">RS${arrow('rs')}</th>
+      <th class="sortable" data-col="rsi">RSI${arrow('rsi')}</th>
+      <th>TAGS</th>
+      <th>SIGNAL</th>
     </tr></thead>
-    <tbody>${rows}</tbody>
+    <tbody>${bodyHTML}</tbody>
   </table>`;
+
+  // Wire sortable headers
+  wrap.querySelectorAll('th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const col = th.dataset.col;
+      if (tableSortCol === col) tableSortAsc = !tableSortAsc;
+      else { tableSortCol = col; tableSortAsc = false; } // default desc for numeric
+      renderTable();
+      applyFilters();
+    });
+  });
 
   // Wire sector header collapse/expand handlers
   wrap.querySelectorAll('.tbl-sec-row').forEach(row => {
@@ -1093,6 +1279,55 @@ function renderTable() {
       );
     });
   });
+}
+
+function buildTickerRow(t, si) {
+  const q    = quotesCache[t.sym];
+  const d    = cardDataCache[t.sym] || {};
+  const rsi  = d.rsi;
+  const price = q?.regularMarketPrice;
+  const chgP  = d.chg;
+  const chgAbs = d.chgAbs ?? null;
+  const ma50v  = q?.fiftyDayAverage;
+  const ma200v = q?.twoHundredDayAverage;
+  const p50   = (ma50v  && price) ? (price - ma50v)  / ma50v  * 100 : null;
+  const p200  = (ma200v && price) ? (price - ma200v) / ma200v * 100 : null;
+  const wkH = q?.fiftyTwoWeekHigh, wkL = q?.fiftyTwoWeekLow;
+  const wkPct = (wkH && wkL && price) ? Math.round((price - wkL) / (wkH - wkL) * 100) : null;
+  const wkBucket    = wkPct == null ? '' : wkPct <= 25 ? 'NEAR LOW' : wkPct >= 75 ? 'NEAR HIGH' : 'MID';
+  const wkBucketCls = wkPct == null ? '' : wkPct <= 25 ? 'near-low' : wkPct >= 75 ? 'near-high' : 'mid';
+
+  const rsiCls   = rsi != null ? (rsi < 40 ? 'bull' : rsi > 70 ? 'bear' : 'neut') : null;
+  const rsiTag   = rsi != null ? `<span class="mkt-tag ${rsiCls}">RSI ${rsi.toFixed(1)}</span>` : '';
+  const ma50tag  = p50  != null ? `<span class="mkt-tag ${p50  > 0 ? 'bull':'bear'}">${p50  > 0 ? '↑':'↓'}50</span>`  : '';
+  const ma200tag = p200 != null ? `<span class="mkt-tag ${p200 > 0 ? 'bull':'bear'}">${p200 > 0 ? '↑':'↓'}200</span>` : '';
+  const crossBull = (ma50v && ma200v) ? ma50v > ma200v : null;
+  const crossTag  = crossBull !== null
+    ? `<span class="mkt-tag ${crossBull ? 'bull':'bear'}">${crossBull ? '↑ GOLDEN':'↓ DEATH'}</span>` : '';
+
+  const sigMap = {dc:'⬇ DC', we:'◎ WE', ns:'↔ MX', ut:'↑ UT', ex:'⚠ EX', nd:'—',
+                  bo:'🔥 BO', mo:'⚡ MO', pb:'↩ PB', sq:'🔸 SQ'};
+  const sig = d.signal ? (sigMap[d.signal] || d.signal) : '—';
+  const chgCls = (chgP ?? 0) >= 0 ? 'up' : 'dn';
+  const rowCls = `tbl-row${collapsedSectors.has(si) ? ' sec-collapsed' : ''}`;
+
+  const fmtV = (v) => v != null ? `${v >= 0 ? '+' : ''}${v.toFixed(1)}%` : '—';
+  const clsV = (v) => v == null ? '' : v >= 0 ? 'up' : 'dn';
+
+  return `<tr class="${rowCls}" data-si="${si}" data-sym="${t.sym}">
+    <td class="tbl-sym">${t.sym}</td>
+    <td class="tbl-name">${t.name}</td>
+    <td class="tbl-price">${price != null ? fmtP(price) : '—'}</td>
+    <td class="tbl-chg ${chgCls}">${chgP != null ? fmtPct(chgP) : '—'}</td>
+    <td class="tbl-chg ${clsV(d.chg1w)}">${fmtV(d.chg1w)}</td>
+    <td class="tbl-chg ${clsV(d.chg1m)}">${fmtV(d.chg1m)}</td>
+    <td class="tbl-chg ${clsV(d.roc20)}">${fmtV(d.roc20)}</td>
+    <td class="tbl-52w"><span class="wk-bucket ${wkBucketCls}">${wkPct != null ? wkPct + '%' : ''}</span> <span style="opacity:.5;font-size:calc(9px * var(--scale))">${wkBucket}</span></td>
+    <td class="tbl-chg ${clsV(d.rs)}">${d.rs != null ? `${d.rs >= 0 ? '+' : ''}${d.rs.toFixed(1)}` : '—'}</td>
+    <td>${rsi != null ? `<span class="mkt-tag ${rsiCls}">${rsi.toFixed(1)}</span>` : '—'}</td>
+    <td><div class="tbl-tags">${ma50tag}${ma200tag}${crossTag}</div></td>
+    <td class="tbl-sig"><span class="signal ${d.signal || 'nd'}">${sig}</span></td>
+  </tr>`;
 }
 
 // ── TOGGLE VIEW ───────────────────────────────────────────────────────────
