@@ -398,6 +398,7 @@ padding:5px 12px;border:1px solid var(--border);background:transparent;color:var
 <button onclick="document.getElementById('importFile').click()">Import JSON</button>
 <input type="file" id="importFile" accept=".json" style="display:none" onchange="importWatchlist(event)">
 <button onclick="restoreDefaults()" style="margin-top:8px">Restore Defaults</button>
+<button onclick="resetApp()" style="margin-top:4px;color:var(--red);border-color:var(--red)">Reset App (Clear All Data)</button>
 
 <label style="margin-top:16px">Settings</label>
 <label>Account Size ($)</label>
@@ -1590,6 +1591,11 @@ localStorage.removeItem('swingflow_cache');
 quotesCache={};weeklyCache={};spyChg1m=null;
 Object.keys(cardDataCache).forEach(k=>delete cardDataCache[k]);
 init();
+}
+function resetApp(){
+if(!confirm('Clear all data and reset to defaults? This cannot be undone.'))return;
+localStorage.clear();
+location.reload();
 }
 async function init(){
 initTheme();
