@@ -479,7 +479,7 @@ const attempts=[
 for(const a of attempts){
 try{
 const ctrl=new AbortController();
-const timer=setTimeout(()=>ctrl.abort(),7000);
+const timer=setTimeout(()=>ctrl.abort(),10000);
 const res=await fetch(a.url,{signal:ctrl.signal});
 clearTimeout(timer);
 if(!res.ok)throw new Error(res.status);
@@ -506,7 +506,7 @@ return bars;
 }catch(e){return null}
 }
 
-async function batchFetch(syms,batchSize=8){
+async function batchFetch(syms,batchSize=3){
 const results={};
 for(let i=0;i<syms.length;i+=batchSize){
 const batch=syms.slice(i,i+batchSize);
@@ -516,6 +516,7 @@ if(bars&&bars.length>0)results[sym]=bars;
 });
 await Promise.all(promises);
 setStatus('loading',`Fetched ${Math.min(i+batchSize,syms.length)}/${syms.length} tickers…`);
+if(i+batchSize<syms.length)await new Promise(r=>setTimeout(r,300));
 }
 return results;
 }
