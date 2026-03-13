@@ -479,7 +479,7 @@ const attempts=[
 for(const a of attempts){
 try{
 const ctrl=new AbortController();
-const timer=setTimeout(()=>ctrl.abort(),10000);
+const timer=setTimeout(()=>ctrl.abort(),12000);
 const res=await fetch(a.url,{signal:ctrl.signal});
 clearTimeout(timer);
 if(!res.ok)throw new Error(res.status);
@@ -489,34 +489,66 @@ return await res.json();
 throw new Error('All fetch attempts failed: '+url);
 }
 
-async function fetchOHLC(sym){
-const url=`https://query2.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=1y`;
+// Parse v8 chart response into bars array
+function parsev8(json){
 try{
-const json=await fetchJSON(url);
 const r=json.chart.result[0];
-const ts=r.timestamp;
-const q=r.indicators.quote[0];
+const ts=r.timestamp;const q=r.indicators.quote[0];
 if(!ts||!q)return null;
 const bars=[];
 for(let i=0;i<ts.length;i++){
 if(q.close[i]==null)continue;
 bars.push({date:new Date(ts[i]*1000),open:q.open[i],high:q.high[i],low:q.low[i],close:q.close[i],volume:q.volume[i]||0});
 }
-return bars;
+return bars.length?bars:null;
 }catch(e){return null}
 }
 
-async function batchFetch(syms,batchSize=3){
+// Primary: batch spark API — one request per 40 symbols
+async function fetchSparkBatch(syms){
 const results={};
-for(let i=0;i<syms.length;i+=batchSize){
-const batch=syms.slice(i,i+batchSize);
-const promises=batch.map(async sym=>{
-const bars=await fetchOHLC(sym);
-if(bars&&bars.length>0)results[sym]=bars;
+const chunkSize=40;
+for(let i=0;i<syms.length;i+=chunkSize){
+const chunk=syms.slice(i,i+chunkSize);
+const url=`https://query1.finance.yahoo.com/v8/finance/spark?symbols=${chunk.join(',')}&range=1y&interval=1d`;
+try{
+const json=await fetchJSON(url);
+const items=json?.spark?.result||[];
+items.forEach(item=>{
+if(!item||!item.symbol)return;
+const resp=item.response&&item.response[0];
+if(!resp)return;
+const bars=parsev8({chart:{result:[resp]}});
+if(bars&&bars.length)results[item.symbol]=bars;
 });
-await Promise.all(promises);
-setStatus('loading',`Fetched ${Math.min(i+batchSize,syms.length)}/${syms.length} tickers…`);
-if(i+batchSize<syms.length)await new Promise(r=>setTimeout(r,300));
+}catch(e){/* chunk failed, will retry per-symbol */}
+setStatus('loading',`Batch fetched ${Math.min(i+chunkSize,syms.length)}/${syms.length} tickers…`);
+if(i+chunkSize<syms.length)await new Promise(r=>setTimeout(r,400));
+}
+return results;
+}
+
+// Fallback: per-symbol v8 chart for any that spark missed
+async function fetchOHLC(sym){
+const url=`https://query2.finance.yahoo.com/v8/finance/chart/${sym}?interval=1d&range=1y`;
+try{return parsev8(await fetchJSON(url))}catch(e){return null}
+}
+
+async function batchFetch(syms){
+const results=await fetchSparkBatch(syms);
+// Find symbols that spark missed and retry individually
+const missed=syms.filter(s=>!results[s]);
+if(missed.length){
+setStatus('loading',`Retrying ${missed.length} tickers individually…`);
+const batchSize=3;
+for(let i=0;i<missed.length;i+=batchSize){
+const batch=missed.slice(i,i+batchSize);
+await Promise.all(batch.map(async sym=>{
+const bars=await fetchOHLC(sym);
+if(bars&&bars.length)results[sym]=bars;
+}));
+if(i+batchSize<missed.length)await new Promise(r=>setTimeout(r,300));
+}
 }
 return results;
 }
@@ -1583,7 +1615,7 @@ setStatus('loading','Fetching market data…');
 const allSyms=[...MARKET_INDICES,...SECTOR_ETFS,...allTickers.map(t=>t.sym)];
 const unique=[...new Set(allSyms)];
 
-const results=await batchFetch(unique,8);
+const results=await batchFetch(unique);
 Object.assign(quotesCache,results);
 
 // Compute SPY 1M change for relative strength
