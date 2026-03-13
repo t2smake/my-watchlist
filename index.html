@@ -311,6 +311,7 @@ padding:5px 12px;border:1px solid var(--border);background:transparent;color:var
 <div class="subtitle">Tracking <span class="count" id="tickerCount">0</span> tickers across <span class="count" id="sectorCount">0</span> sectors</div>
 </div>
 <div class="header-actions">
+<button onclick="refreshData()" aria-label="Force refresh data">↺ REFRESH</button>
 <button class="btn-add" onclick="openManageModal('add')" aria-label="Add ticker">+ ADD</button>
 <button onclick="openManageModal()" aria-label="Manage watchlist">MANAGE</button>
 <button class="size-btn" onclick="setScale(.85)" aria-label="Decrease text size">A-</button>
@@ -1551,6 +1552,12 @@ return true;
 }
 
 /* ──────────────────── INIT ──────────────────── */
+function refreshData(){
+localStorage.removeItem('swingflow_cache');
+quotesCache={};weeklyCache={};spyChg1m=null;
+Object.keys(cardDataCache).forEach(k=>delete cardDataCache[k]);
+init();
+}
 async function init(){
 initTheme();
 initTextSize();
