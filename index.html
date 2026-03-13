@@ -511,7 +511,7 @@ const results={};
 const chunkSize=40;
 for(let i=0;i<syms.length;i+=chunkSize){
 const chunk=syms.slice(i,i+chunkSize);
-const url=`https://query1.finance.yahoo.com/v8/finance/spark?symbols=${chunk.join(',')}&range=1y&interval=1d`;
+const url=`https://query1.finance.yahoo.com/v7/finance/spark?symbols=${chunk.join(',')}&range=1y&interval=1d`;
 try{
 const json=await fetchJSON(url);
 const items=json?.spark?.result||[];
